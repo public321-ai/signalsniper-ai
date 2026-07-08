@@ -76,14 +76,16 @@ export function extractJson(content: string): string | null {
   return null;
 }
 
-export async function fetchAnalysis(
-  pair: string,
-  apiKey: string,
-  currentPrice?: number,
-  indicators?: Record<string, number | string>
-): Promise<SignalAnalysis> {
-  const prompt = buildPrompt(pair, currentPrice, indicators);
+const MODELS = [
+  "accounts/fireworks/models/gemma3n-27b",
+  "accounts/fireworks/models/gpt-oss-120b",
+];
 
+async function callFireworks(
+  apiKey: string,
+  model: string,
+  prompt: string
+): Promise<string> {
   const response = await fetch(
     "https://api.fireworks.ai/inference/v1/chat/completions",
     {
@@ -93,7 +95,7 @@ export async function fetchAnalysis(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "accounts/fireworks/models/gpt-oss-120b",
+        model,
         messages: [{ role: "user", content: prompt }],
         max_tokens: 16384,
         top_k: 40,
@@ -105,14 +107,42 @@ export async function fetchAnalysis(
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Fireworks API error: ${response.status} — ${errText}`);
+    throw new Error(`Fireworks API error (${model}): ${response.status} — ${errText}`);
   }
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
 
   if (!content) {
-    throw new Error("No response content from Fireworks AI");
+    throw new Error(`No response content from model ${model}`);
+  }
+
+  return content;
+}
+
+export async function fetchAnalysis(
+  pair: string,
+  apiKey: string,
+  currentPrice?: number,
+  indicators?: Record<string, number | string>
+): Promise<SignalAnalysis> {
+  const prompt = buildPrompt(pair, currentPrice, indicators);
+
+  let content: string | null = null;
+  let usedModel: string | null = null;
+
+  for (const model of MODELS) {
+    try {
+      content = await callFireworks(apiKey, model, prompt);
+      usedModel = model;
+      break;
+    } catch (err) {
+      console.warn(`Model ${model} failed, trying fallback…`, err);
+    }
+  }
+
+  if (!content) {
+    throw new Error("All Fireworks models failed");
   }
 
   const jsonStr = extractJson(content);
@@ -131,5 +161,6 @@ export async function fetchAnalysis(
     pair,
     ...(analysis as Omit<SignalAnalysis, "pair" | "timestamp">),
     timestamp: new Date().toISOString(),
+    model: usedModel ?? undefined,
   };
 }

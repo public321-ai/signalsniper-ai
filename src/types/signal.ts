@@ -22,4 +22,5 @@ export interface SignalAnalysis {
   reasons: string[];
   warnings: string[];
   timestamp: string;
+  model?: string;
 }

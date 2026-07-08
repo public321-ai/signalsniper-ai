@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SignalSniper AI
 
-## Getting Started
+Forex signal analysis dashboard powered by Fireworks AI + Gemma AI.
 
-First, run the development server:
+## Setup
+
+```bash
+npm install
+```
+
+Create `.env.local`:
+
+```
+FIREWORKS_API_KEY=your_key_here
+GEMMA_API_URL=                          # Leave empty for mock mode
+```
+
+When `GEMMA_API_URL` is empty, the Gemma analysis endpoint returns realistic mock responses.
+To connect to a real vLLM/Gemma GPU server, set it to:
+
+```
+GEMMA_API_URL=http://GPU_SERVER_IP:8000/v1/chat/completions
+```
+
+Only `src/lib/gemma-service.ts` needs to change when switching from mock to real — the API route and frontend remain identical.
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### POST /api/analyze
 
-## Learn More
+Generate a Fireworks AI signal analysis for a forex pair.
 
-To learn more about Next.js, take a look at the following resources:
+**Request:**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+{ "pair": "EUR/USD", "currentPrice": 1.1035 }
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Response:** Full `SignalAnalysis` object with recommendation, confidence, entry/SL/TP, key levels, etc.
 
-## Deploy on Vercel
+### POST /api/gemma-analysis
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Generate a detailed Gemma AI explanation for an existing signal.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Request:**
+
+```json
+{
+  "symbol": "EURUSD",
+  "market": "Forex",
+  "signal": "BUY",
+  "entry": "1.1035",
+  "stop_loss": "1.0950",
+  "take_profit": "1.1100",
+  "risk": "MEDIUM",
+  "confidence": 78
+}
+```
+
+**Response:**
+
+```json
+{
+  "symbol": "EURUSD",
+  "analysis": "EUR/USD is showing bullish momentum...",
+  "model": "gemma-mock"    // or "gemma-real" when GEMMA_API_URL is set
+}
+```
+
+### GET /api/signals
+
+Fetch cached analyses for all 3 pairs (EUR/USD, GBP/USD, USD/JPY).
+
+### GET /api/rates
+
+Fetch live exchange rates.
+
+## Testing with curl
+
+**Fireworks analysis:**
+
+```bash
+curl -X POST http://localhost:3000/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"pair":"EUR/USD"}'
+```
+
+**Gemma AI analysis (mock mode):**
+
+```bash
+curl -X POST http://localhost:3000/api/gemma-analysis \
+  -H "Content-Type: application/json" \
+  -d '{"symbol":"EURUSD","signal":"BUY","entry":"1.1035","stop_loss":"1.0950","take_profit":"1.1100","risk":"MEDIUM","confidence":78}'
+```
+
+**Gemma AI analysis (GBP/USD):**
+
+```bash
+curl -X POST http://localhost:3000/api/gemma-analysis \
+  -H "Content-Type: application/json" \
+  -d '{"symbol":"GBPUSD","signal":"SELL","entry":"1.2750","stop_loss":"1.2800","take_profit":"1.2650","risk":"MEDIUM","confidence":72}'
+```
+
+**Gemma AI analysis (USD/JPY):**
+
+```bash
+curl -X POST http://localhost:3000/api/gemma-analysis \
+  -H "Content-Type: application/json" \
+  -d '{"symbol":"USDJPY","signal":"SELL","entry":"155.50","stop_loss":"157.00","take_profit":"154.00","risk":"HIGH","confidence":65}'
+```
+
+## Architecture
+
+```
+src/
+  app/
+    api/
+      analyze/route.ts          — Fireworks AI signal analysis
+      gemma-analysis/route.ts   — Gemma AI detailed explanation
+      rates/route.ts            — Live forex rates
+      signals/route.ts          — Cached signals for all pairs
+  components/
+    Dashboard.tsx               — Main dashboard with signal cards
+    GemmaAnalysisButton.tsx     — Button + expandable analysis section
+  lib/
+    analyze.ts                  — Fireworks AI integration (model fallback)
+    cache.ts                    — In-memory TTL cache
+    gemma-service.ts            — Gemma AI service (mock or real vLLM)
+  prompts/
+    forex_analysis_prompt.txt   — Gemma prompt template
+  types/
+    signal.ts                   — TypeScript interfaces
+```
+
+## Switching from Mock to Real Gemma
+
+1. Set `GEMMA_API_URL` in `.env.local` to your vLLM server endpoint
+2. Verify `src/lib/gemma-service.ts` — the `callRealGemma` function handles the API call
+3. No other files need changes — the API route and frontend are agnostic

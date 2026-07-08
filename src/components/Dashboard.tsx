@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { SignalAnalysis } from "@/types/signal";
+import GemmaAnalysisButton from "@/components/GemmaAnalysisButton";
 
 const PAIRS = ["EUR/USD", "GBP/USD", "USD/JPY"];
 
@@ -274,6 +275,7 @@ function SignalCard({ pair, analysis, loading, error, liveRate, onAnalyze }: {
             {loading ? "Re-analyzing…" : "Re-analyze"}
           </button>
         )}
+        {analysis && <GemmaAnalysisButton analysis={analysis} />}
       </div>
     </div>
   );
