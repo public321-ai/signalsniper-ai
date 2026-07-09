@@ -54,7 +54,7 @@ Return a JSON object with these EXACT fields:
 }
 
 export function extractJson(content: string): string | null {
-  let cleaned = content.replace(/^```json?\s*\n?/i, "").replace(/\n?```$/i, "").trim();
+  const cleaned = content.replace(/^```json?\s*\n?/i, "").replace(/\n?```$/i, "").trim();
 
   if (cleaned.startsWith("{") && cleaned.endsWith("}")) {
     return cleaned;

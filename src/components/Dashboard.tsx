@@ -84,7 +84,7 @@ function SignalCard({ pair, analysis, loading, error, liveRate, onAnalyze }: {
       {/* Error */}
       {error && (
         <div className="mx-5 mt-3 rounded-lg bg-rose-50 ring-1 ring-rose-200 px-4 py-3 text-sm text-rose-700">
-          <span className="font-medium">Couldn't analyze.</span> {error}
+          <span className="font-medium">Couldn&apos;t analyze.</span> {error}
         </div>
       )}
 
@@ -458,7 +458,7 @@ export default function Dashboard() {
           <div className="rounded-xl bg-slate-900 text-white px-6 py-5 sm:py-6">
             <h2 className="text-lg sm:text-xl font-semibold tracking-tight">Trade smarter through understanding.</h2>
             <p className="mt-1.5 text-sm text-slate-300 leading-relaxed max-w-xl">
-              SignalSniper AI doesn't replace traders — it helps them understand the reasoning behind market signals.
+              SignalSniper AI doesn&apos;t replace traders — it helps them understand the reasoning behind market signals.
             </p>
           </div>
         </section>
