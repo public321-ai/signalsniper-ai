@@ -1,6 +1,6 @@
 # SignalSniper AI
 
-Forex signal analysis dashboard powered by Fireworks AI + Gemma AI.
+Forex signal analysis dashboard powered by Fireworks AI + NVIDIA (Gemma 2).
 
 ## Setup
 
@@ -12,17 +12,17 @@ Create `.env.local`:
 
 ```
 FIREWORKS_API_KEY=your_key_here
-GEMMA_API_URL=                          # Leave empty for mock mode
+NVIDIA_API_KEY=your_nvidia_key  # Leave empty for mock Gemma mode
 ```
 
-When `GEMMA_API_URL` is empty, the Gemma analysis endpoint returns realistic mock responses.
-To connect to a real vLLM/Gemma GPU server, set it to:
+When `NVIDIA_API_KEY` is empty, the Gemma analysis endpoint returns realistic mock responses.
+To use the real Gemma model via NVIDIA API, set your API key:
 
 ```
-GEMMA_API_URL=http://GPU_SERVER_IP:8000/v1/chat/completions
+NVIDIA_API_KEY=nvapi-...
 ```
 
-Only `src/lib/gemma-service.ts` needs to change when switching from mock to real — the API route and frontend remain identical.
+The model used is `google/gemma-2-2b-it` via NVIDIA's integrate API. If NVIDIA fails, the service automatically falls back to mock responses.
 
 ## Run
 
@@ -71,7 +71,7 @@ Generate a detailed Gemma AI explanation for an existing signal.
 {
   "symbol": "EURUSD",
   "analysis": "EUR/USD is showing bullish momentum...",
-  "model": "gemma-mock"    // or "gemma-real" when GEMMA_API_URL is set
+  "model": "google/gemma-2-2b-it"  // or "gemma-mock" when NVIDIA_API_KEY is unset
 }
 ```
 
@@ -133,7 +133,7 @@ src/
   lib/
     analyze.ts                  — Fireworks AI integration (model fallback)
     cache.ts                    — In-memory TTL cache
-    gemma-service.ts            — Gemma AI service (mock or real vLLM)
+    gemma-service.ts            — NVIDIA Gemma service (mock fallback)
   prompts/
     forex_analysis_prompt.txt   — Gemma prompt template
   types/
@@ -142,6 +142,7 @@ src/
 
 ## Switching from Mock to Real Gemma
 
-1. Set `GEMMA_API_URL` in `.env.local` to your vLLM server endpoint
-2. Verify `src/lib/gemma-service.ts` — the `callRealGemma` function handles the API call
-3. No other files need changes — the API route and frontend are agnostic
+1. Set `NVIDIA_API_KEY` in `.env.local` to your NVIDIA API key
+2. The `callNvidia` function in `src/lib/gemma-service.ts` uses `google/gemma-2-2b-it` via NVIDIA's integrate API
+3. If NVIDIA fails (no key, rate limit, model error), the service automatically falls back to mock responses
+4. No other files need changes — the API route and frontend are agnostic

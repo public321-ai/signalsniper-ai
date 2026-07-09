@@ -18,6 +18,9 @@ export interface GemmaAnalysisResponse {
   model: string;
 }
 
+const NVIDIA_MODEL = "google/gemma-2-2b-it";
+const NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
+
 function loadPromptTemplate(): string {
   const filePath = join(process.cwd(), "src/prompts/forex_analysis_prompt.txt");
   return readFileSync(filePath, "utf-8");
@@ -45,28 +48,34 @@ const MOCK_ANALYSES: Record<string, string> = {
     "USD/JPY's bearish signal at 155.50 entry reflects overbought conditions detected across RSI, stochastic, and Bollinger Band metrics, with the yen showing signs of recovery as BoJ policy normalization expectations grow. The 65% confidence score acknowledges the pair's historically strong uptrend and the risk that intervention threats or sustained carry-trade demand could delay the anticipated reversal. The 154.00 take profit aligns with near-term support, while the 157.00 stop loss sits just above recent resistance. HIGH risk designation is warranted given the pair's sensitivity to sudden BoJ policy shifts and potential government intervention—these represent the primary invalidation risks. A decisive break above 157.00 or an unexpectedly dovish BoJ statement would overturn the bearish thesis. Position sizing should account for the elevated volatility inherent in this politically sensitive cross.",
 };
 
-async function callRealGemma(prompt: string, apiUrl: string): Promise<string> {
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "gemma",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 512,
-      temperature: 0.7,
-    }),
-  });
+async function callNvidia(apiKey: string, prompt: string): Promise<string> {
+  const response = await fetch(
+    `${NVIDIA_BASE_URL}/chat/completions`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: NVIDIA_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 512,
+        temperature: 0.7,
+      }),
+    }
+  );
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Gemma API error: ${response.status} — ${errText}`);
+    throw new Error(`NVIDIA API error (${NVIDIA_MODEL}): ${response.status} — ${errText}`);
   }
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
 
   if (!content) {
-    throw new Error("No response content from Gemma");
+    throw new Error(`No response content from NVIDIA model ${NVIDIA_MODEL}`);
   }
 
   return content;
@@ -84,17 +93,21 @@ async function callMockGemma(params: GemmaAnalysisRequest): Promise<string> {
 export async function analyzeWithGemma(
   params: GemmaAnalysisRequest
 ): Promise<GemmaAnalysisResponse> {
-  const apiUrl = process.env.GEMMA_API_URL;
+  const apiKey = process.env.NVIDIA_API_KEY;
 
-  if (apiUrl) {
-    // Real vLLM/Gemma endpoint configured
+  if (apiKey) {
+    // NVIDIA API with Gemma model
     const template = loadPromptTemplate();
     const prompt = fillTemplate(template, params);
-    const analysis = await callRealGemma(prompt, apiUrl);
-    return { symbol: params.symbol, analysis, model: "gemma-real" };
+    try {
+      const analysis = await callNvidia(apiKey, prompt);
+      return { symbol: params.symbol, analysis, model: NVIDIA_MODEL };
+    } catch (err) {
+      console.warn("NVIDIA call failed, falling back to mock…", err);
+    }
   }
 
-  // Mock mode — no GEMMA_API_URL configured
+  // Mock mode — no NVIDIA_API_KEY or NVIDIA call failed
   const analysis = await callMockGemma(params);
   return { symbol: params.symbol, analysis, model: "gemma-mock" };
 }
