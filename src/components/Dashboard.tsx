@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { SignalAnalysis } from "@/types/signal";
 import GemmaAnalysisButton from "@/components/GemmaAnalysisButton";
 
@@ -47,32 +47,32 @@ function SignalCard({ pair, analysis, loading, error, liveRate, onAnalyze }: {
   const trendBg = isBuy ? "bg-emerald-50" : isSell ? "bg-rose-50" : "bg-amber-50";
 
   return (
-    <div className="flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/80 overflow-hidden hover:shadow-lg transition-shadow duration-200">
+    <div className="flex flex-col bg-white rounded-xl sm:rounded-2xl shadow-sm ring-1 ring-slate-200/80 overflow-hidden hover:shadow-lg transition-shadow duration-200">
       {/* Header */}
-      <div className="px-5 pt-4 pb-3 border-b border-slate-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0">
+      <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2.5 sm:pb-3 border-b border-slate-100">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0">
               {label.symbol}
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] font-semibold text-slate-900 tracking-tight">{pair}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="text-sm sm:text-[15px] font-semibold text-slate-900 tracking-tight">{pair}</span>
                 {analysis && rec && (
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1 ${rec.bg} ${rec.text} ${rec.ring}`}>
+                  <span className={`inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold ring-1 ${rec.bg} ${rec.text} ${rec.ring}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${rec.dot}`}></span>
                     {rec.label}
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">{label.name}</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">{label.name}</p>
             </div>
           </div>
           <div className="text-right shrink-0">
             {liveRate !== null ? (
               <>
-                <div className="text-sm font-semibold text-slate-900 tabular-nums">{liveRate.toFixed(dec)}</div>
-                <div className="text-[10px] text-slate-400">Live</div>
+                <div className="text-xs sm:text-sm font-semibold text-slate-900 tabular-nums">{liveRate.toFixed(dec)}</div>
+                <div className="text-[9px] sm:text-[10px] text-slate-400">Live</div>
               </>
             ) : (
               <div className="text-xs text-slate-400">—</div>
@@ -90,7 +90,7 @@ function SignalCard({ pair, analysis, loading, error, liveRate, onAnalyze }: {
 
       {/* Analysis */}
       {analysis && (
-        <div className="px-5 py-4 space-y-4 flex-1">
+        <div className="px-4 sm:px-5 py-3 sm:py-4 space-y-3 sm:space-y-4 flex-1">
           {/* Confidence */}
           <div>
             <div className="flex items-baseline justify-between mb-1.5">
@@ -248,7 +248,7 @@ function SignalCard({ pair, analysis, loading, error, liveRate, onAnalyze }: {
       )}
 
       {/* Action */}
-      <div className="px-5 pb-4 mt-auto">
+      <div className="px-4 sm:px-5 pb-3 sm:pb-4 mt-auto">
         {!analysis && !loading && !error && (
           <button
             onClick={onAnalyze}
@@ -281,31 +281,53 @@ function SignalCard({ pair, analysis, loading, error, liveRate, onAnalyze }: {
   );
 }
 
+function ScrollObserver({ pair, onInView }: { pair: string; onInView: (pair: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onInView(pair);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [pair, onInView]);
+
+  return <div ref={ref} className="h-1" />;
+}
+
 export default function Dashboard() {
   const [signals, setSignals] = useState<Record<string, SignalAnalysis | null>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [analyzed, setAnalyzed] = useState<Record<string, boolean>>({});
   const [liveRates, setLiveRates] = useState<Record<string, number | null>>(
     Object.fromEntries(PAIRS.map((p) => [p, null]))
   );
 
-  // Auto-load cached signals on mount
+  // Analyze first card on mount
   useEffect(() => {
-    async function loadSignals() {
-      setLoading(PAIRS.reduce((acc, p) => ({ ...acc, [p]: true }), {}));
-      try {
-        const res = await fetch("/api/signals");
-        if (!res.ok) return;
-        const data = await res.json();
-        for (const pair of PAIRS) {
-          if (data[pair] && !data[pair].error) {
-            setSignals((prev) => ({ ...prev, [pair]: data[pair] }));
-          }
-        }
-      } catch { /* silently fail */ }
-      setLoading(PAIRS.reduce((acc, p) => ({ ...acc, [p]: false }), {}));
-    }
-    loadSignals();
+    const firstPair = PAIRS[0];
+    if (firstPair) analyzePair(firstPair);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Scroll-triggered analysis handler (stable ref)
+  const analyzedRef = useRef(analyzed);
+  useEffect(() => { analyzedRef.current = analyzed; }, [analyzed]);
+
+  const handleInView = useCallback((pair: string) => {
+    if (analyzedRef.current[pair]) return;
+    setAnalyzed((prev) => ({ ...prev, [pair]: true }));
+    analyzePair(pair);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -352,122 +374,121 @@ export default function Dashboard() {
     <div className="min-h-screen flex flex-col">
       {/* Nav */}
       <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-lg border-b border-slate-200/60">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="white" strokeWidth="2.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="white" strokeWidth="2.5">
                 <path d="M3 3l7 7M14 10l7-7M3 21l7-7M14 14l7 7" strokeLinecap="round"/>
                 <circle cx="12" cy="12" r="2.5" fill="white" stroke="none"/>
               </svg>
             </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">SignalSniper</span>
-            <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700 rounded-md">AI</span>
+            <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">SignalSniper</span>
+            <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700 rounded-md">AI</span>
           </div>
-          <div className="flex items-center gap-2.5 text-[11px] text-slate-500">
+          <div className="flex items-center gap-2 sm:gap-2.5 text-[11px] text-slate-500 shrink-0">
             <span className="flex items-center gap-1">
               <span className="relative flex w-1.5 h-1.5">
                 <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75"></span>
                 <span className="relative rounded-full w-1.5 h-1.5 bg-emerald-500"></span>
               </span>
-              Live
+              <span className="hidden sm:inline">Live</span>
             </span>
-            <span className="text-slate-300">·</span>
+            <span className="hidden sm:inline text-slate-300">·</span>
             <span className="tabular-nums">{analyzedCount}/3</span>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
-        {/* Hero — headline + descriptive subtitle */}
-        <section className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-4">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 text-center">
-            Forex Signals. <span className="text-blue-600">Analyzed</span>. Explained. <span className="text-blue-600">Optimized</span>.
-          </h1>
-          <p className="mt-1.5 text-sm font-medium text-slate-600">
-            High-Performance Forex Intelligence with Fireworks AI, AMD GPUs, and Explainable AI
-          </p>
-          <p className="mt-2 text-sm text-slate-500 leading-relaxed max-w-3xl">
-            Select a currency pair → SignalSniper AI performs multi-factor market analysis using 15+ technical indicators and intelligent AI reasoning → Receive transparent trading insights, confidence scores, entry/exit levels, and proactive risk warnings.
-          </p>
+        {/* Hero */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-6 sm:pb-8">
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 ring-1 ring-blue-100 mb-4">
+              <span className="relative flex w-1.5 h-1.5">
+                <span className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75"></span>
+                <span className="relative rounded-full w-1.5 h-1.5 bg-blue-500"></span>
+              </span>
+              <span className="text-[11px] font-semibold text-blue-700 tracking-wide uppercase">AI-Powered Forex Intelligence</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
+              <span className="text-blue-600">AI Powered</span> Market Intel for Forex
+            </h1>
+            <p className="mt-3 text-xs sm:text-sm text-slate-500 leading-relaxed">
+              Multi-factor analysis across <span className="font-semibold text-slate-700">15+ technical indicators</span> — delivered with confidence scores, entry/exit levels, and transparent AI reasoning.
+            </p>
+          </div>
+
+          {/* How it works — inline pills */}
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-3 mt-6">
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white ring-1 ring-slate-200 shadow-sm">
+              <span className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">1</span>
+              <span className="text-[11px] sm:text-xs font-medium text-slate-700">Select a pair</span>
+            </div>
+            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-300 shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white ring-1 ring-slate-200 shadow-sm">
+              <span className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+              <span className="text-[11px] sm:text-xs font-medium text-slate-700">AI evaluates</span>
+            </div>
+            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-300 shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-white ring-1 ring-slate-200 shadow-sm">
+              <span className="w-5 h-5 rounded-md bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">3</span>
+              <span className="text-[11px] sm:text-xs font-medium text-slate-700">Get full breakdown</span>
+            </div>
+          </div>
         </section>
 
         {/* Live Signals — main focus, immediately visible */}
-        <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-6">
-          <div className="flex items-center justify-between mb-4">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 mb-4">
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">Live Signals</h2>
-            <div className="flex items-center gap-2 text-[11px] text-slate-500">
+            <div className="flex items-center gap-2 sm:gap-3 text-[11px] text-slate-500 overflow-x-auto">
               {liveRates["EUR/USD"] !== null && (
-                <span className="tabular-nums">
+                <span className="tabular-nums whitespace-nowrap">
                   €/$ {liveRates["EUR/USD"]!.toFixed(5)}
                 </span>
               )}
               {liveRates["GBP/USD"] !== null && (
-                <span className="tabular-nums">
+                <span className="tabular-nums whitespace-nowrap">
                   £/$ {liveRates["GBP/USD"]!.toFixed(5)}
                 </span>
               )}
               {liveRates["USD/JPY"] !== null && (
-                <span className="tabular-nums">
+                <span className="tabular-nums whitespace-nowrap">
                   $/¥ {liveRates["USD/JPY"]!.toFixed(3)}
                 </span>
               )}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-            {PAIRS.map((pair) => (
-              <SignalCard
-                key={pair}
-                pair={pair}
-                analysis={signals[pair]}
-                loading={loading[pair] || false}
-                error={errors[pair]}
-                liveRate={liveRates[pair]}
-                onAnalyze={() => analyzePair(pair)}
-              />
+          <div className="flex flex-col gap-3 sm:gap-4 max-w-2xl mx-auto">
+            {PAIRS.map((pair, index) => (
+              <div key={pair} className="relative">
+                {index > 0 && <ScrollObserver pair={pair} onInView={handleInView} />}
+                <SignalCard
+                  pair={pair}
+                  analysis={signals[pair]}
+                  loading={loading[pair] || false}
+                  error={errors[pair]}
+                  liveRate={liveRates[pair]}
+                  onAnalyze={() => analyzePair(pair)}
+                />
+              </div>
             ))}
           </div>
         </section>
 
-        {/* How it works — thin horizontal strip */}
-        <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-8">
-          <div className="rounded-xl bg-white/60 ring-1 ring-slate-200/60 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8">
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">How it works</span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3 text-sm text-slate-600">
-              <span className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center text-[10px] font-bold">1</span>
-                Select pair
-              </span>
-              <span className="text-slate-300">→</span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center text-[10px] font-bold">2</span>
-                AI evaluates indicators
-              </span>
-              <span className="text-slate-300">→</span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-md bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">3</span>
-                Get full breakdown
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-10">
-          <div className="rounded-xl bg-slate-900 text-white px-6 py-5 sm:py-6">
-            <h2 className="text-lg sm:text-xl font-semibold tracking-tight">Trade smarter through understanding.</h2>
-            <p className="mt-1.5 text-sm text-slate-300 leading-relaxed max-w-xl">
-              SignalSniper AI doesn't replace traders — it helps them understand the reasoning behind market signals.
-            </p>
-          </div>
-        </section>
       </main>
 
       <footer className="border-t border-slate-200/60 bg-white/40">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between text-[11px] text-slate-400">
-          <p>© {new Date().getFullYear()} SignalSniper AI</p>
-          <p>AI-generated — educational only. Not financial advice.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col items-center text-center gap-2">
+          <p className="text-sm font-semibold text-slate-700">Trade smarter through understanding.</p>
+          <p className="text-xs text-slate-500 max-w-xl">
+            SignalSniper AI combines technical analysis and AI reasoning to explain market signals, helping traders make more informed decisions.
+          </p>
+          <p className="text-[11px] text-slate-400 mt-2">© {new Date().getFullYear()} SignalSniper AI · AI-generated — educational only. Not financial advice.</p>
         </div>
       </footer>
     </div>

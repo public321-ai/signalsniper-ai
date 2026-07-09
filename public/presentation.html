@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignalSniper AI — Hackathon Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=JetBrains+Mono:wght@300;400;500&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050505;
+  --surface: #0a0a0a;
+  --surface-2: #111111;
+  --border: rgba(255,255,255,0.06);
+  --border-accent: rgba(255,255,255,0.1);
+  --text: #f0f0f0;
+  --text-dim: rgba(255,255,255,0.5);
+  --text-muted: rgba(255,255,255,0.35);
+  --accent-green: #00e87b;
+  --accent-emerald: #10b981;
+  --accent-cyan: #06b6d4;
+  --accent-purple: #a855f7;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --accent-blue: #3b82f6;
+  --font-sans: 'DM Sans', -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Slide Container ── */
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6vh 8vw;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  pointer-events: none;
+  overflow-y: auto;
+}
+.slide.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.slide.exit-up {
+  opacity: 0;
+  transform: translateY(-40px);
+}
+
+/* ── Background Mesh ── */
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.mesh-bg::before {
+  content: '';
+  position: absolute;
+  width: 800px; height: 800px;
+  top: -200px; left: -200px;
+  background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+  animation: drift1 25s ease-in-out infinite;
+}
+.mesh-bg::after {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  bottom: -100px; right: -100px;
+  background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+  animation: drift2 30s ease-in-out infinite;
+}
+@keyframes drift1 { 0%,100%{ transform: translate(0,0); } 50%{ transform: translate(80px,60px); } }
+@keyframes drift2 { 0%,100%{ transform: translate(0,0); } 50%{ transform: translate(-60px,-40px); } }
+
+/* ── Film Grain ── */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ── Progress Bar ── */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+  z-index: 100;
+  transition: width 0.5s var(--ease-out);
+}
+
+/* ── Slide Counter ── */
+.slide-counter {
+  position: fixed;
+  bottom: 3vh;
+  right: 4vw;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  z-index: 100;
+  letter-spacing: 0.1em;
+}
+
+/* ── Nav Dots ── */
+.nav-dots {
+  position: fixed;
+  right: 2vw;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.4s var(--ease-out);
+  border: none;
+  padding: 0;
+}
+.nav-dot.active {
+  background: var(--accent-green);
+  box-shadow: 0 0 12px rgba(0,232,123,0.4);
+  transform: scale(1.4);
+}
+.nav-dot:hover { background: var(--text-dim); }
+
+/* ── Keyboard Hint ── */
+.key-hint {
+  position: fixed;
+  bottom: 3vh;
+  left: 4vw;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.key-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border: 1px solid var(--border-accent);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  background: var(--surface);
+}
+
+/* ── Typography ── */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--accent-green);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--accent-green);
+}
+h1 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.subtitle {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  color: var(--text-dim);
+  line-height: 1.7;
+  max-width: 600px;
+  font-weight: 300;
+}
+.mono { font-family: var(--font-mono); }
+.text-green { color: var(--accent-green); }
+.text-cyan { color: var(--accent-cyan); }
+.text-purple { color: var(--accent-purple); }
+.text-amber { color: var(--accent-amber); }
+.text-rose { color: var(--accent-rose); }
+.text-blue { color: var(--accent-blue); }
+.text-dim { color: var(--text-dim); }
+
+/* ── Double Bezel Card ── */
+.card-outer {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 3px;
+}
+.card-inner {
+  background: var(--surface);
+  border-radius: calc(1.25rem - 3px);
+  padding: 2rem;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.04);
+  height: 100%;
+}
+.card-inner-sm { padding: 1.25rem; }
+
+/* ── Pill Badge ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: 1px solid var(--border-accent);
+  background: rgba(255,255,255,0.03);
+}
+
+/* ── Grid Layouts ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+.grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+.grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; }
+
+/* ── Architecture Diagram ── */
+.arch-flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.arch-node {
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-align: center;
+  border: 1px solid var(--border-accent);
+  background: var(--surface);
+  white-space: nowrap;
+}
+.arch-arrow {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  padding: 0 0.75rem;
+}
+
+/* ── Animated Entry ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+}
+.slide.active .reveal { opacity: 1; transform: translateY(0); }
+.slide.active .reveal.d1 { transition-delay: 0.1s; }
+.slide.active .reveal.d2 { transition-delay: 0.2s; }
+.slide.active .reveal.d3 { transition-delay: 0.3s; }
+.slide.active .reveal.d4 { transition-delay: 0.4s; }
+.slide.active .reveal.d5 { transition-delay: 0.5s; }
+.slide.active .reveal.d6 { transition-delay: 0.6s; }
+
+/* ── Stat Block ── */
+.stat-number {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  font-weight: 600;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 500;
+}
+
+/* ── Code Block ── */
+.code-block {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.8;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+}
+.code-block .kw { color: var(--accent-purple); }
+.code-block .fn { color: var(--accent-cyan); }
+.code-block .str { color: var(--accent-green); }
+.code-block .cm { color: var(--text-muted); }
+.code-block .num { color: var(--accent-amber); }
+
+/* ── Feature List ── */
+.feature-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.feature-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  border: 1px solid var(--border-accent);
+  background: rgba(255,255,255,0.02);
+}
+.feature-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+.feature-desc {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* ── Pipeline Diagram ── */
+.pipeline-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0.75rem 0;
+}
+.pipeline-step {
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  border: 1px solid var(--border-accent);
+  background: var(--surface);
+  white-space: nowrap;
+}
+.pipeline-connector {
+  width: 40px;
+  height: 1px;
+  background: var(--border-accent);
+  position: relative;
+}
+.pipeline-connector::after {
+  content: '→';
+  position: absolute;
+  right: -4px;
+  top: -9px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ── Tech Stack Tags ── */
+.tech-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.tech-tag {
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  border: 1px solid var(--border-accent);
+  background: rgba(255,255,255,0.02);
+  transition: all 0.3s var(--ease-out);
+}
+.tech-tag:hover {
+  border-color: var(--accent-green);
+  background: rgba(0,232,123,0.05);
+}
+
+/* ── Comparison Table ── */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.comp-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-accent);
+}
+.comp-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.comp-table tr:last-child td { border-bottom: none; }
+.comp-table .highlight { color: var(--accent-green); font-weight: 500; }
+
+/* ── Logo ── */
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .slide { padding: 4vh 5vw; }
+  .grid-2, .grid-3, .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
+  .arch-flow { flex-direction: column; }
+  .nav-dots { display: none; }
+  .pipeline-row { flex-direction: column; align-items: flex-start; }
+  .pipeline-connector { width: 1px; height: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="mesh-bg"></div>
+<div class="grain"></div>
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="nav-dots" id="navDots"></div>
+
+<div class="slide-counter" id="slideCounter">01 / 10</div>
+<div class="key-hint">
+  <kbd>←</kbd><kbd>→</kbd> navigate
+</div>
+
+<div class="deck" id="deck">
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 1: TITLE -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide active" data-slide="1">
+  <div class="reveal">
+    <div class="logo-mark" style="margin-bottom: 3rem;">
+      <div class="logo-icon">◎</div>
+      <span>SignalSniper AI</span>
+    </div>
+  </div>
+  <div class="reveal d1">
+    <div class="eyebrow">AMD Hackathon 2026</div>
+  </div>
+  <h1 class="reveal d2">
+    Forex signals,<br>
+    <span style="color: var(--accent-green);">explained</span> by AI.
+  </h1>
+  <p class="subtitle reveal d3" style="max-width: 520px;">
+    A dual-AI pipeline that transforms raw trading signals into structured, trader-grade analysis — powered by Fireworks AI and AMD GPU-accelerated Gemma inference.
+  </p>
+  <div class="reveal d4" style="margin-top: 2.5rem; display: flex; gap: 1rem; align-items: center;">
+    <div class="pill"><span style="color: var(--accent-green);">●</span> Live Demo Ready</div>
+    <div class="pill text-dim">Next.js · Fireworks AI · Gemma · vLLM</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 2: THE PROBLEM -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="2">
+  <div class="reveal">
+    <div class="eyebrow">The Problem</div>
+  </div>
+  <h2 class="reveal d1">
+    Traders drown in signals<br>
+    <span class="text-dim">but starve for understanding.</span>
+  </h2>
+  <div class="grid-3 reveal d2" style="margin-top: 3rem;">
+    <div class="card-outer">
+      <div class="card-inner">
+        <div class="stat-number text-rose">73%</div>
+        <div class="stat-label">of retail traders lose money</div>
+        <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          Most follow signals blindly without understanding the reasoning behind them — leading to poor execution and emotional exits.
+        </p>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner">
+        <div class="stat-number text-amber">BUY</div>
+        <div class="stat-label" style="font-size: 0.65rem;">That's the entire signal</div>
+        <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          Traditional signal services output a single word. No entry context, no risk assessment, no market sentiment, no invalidation points.
+        </p>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner">
+        <div class="stat-number text-purple">0s</div>
+        <div class="stat-label">Explainability</div>
+        <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          Traders have no way to understand <em>why</em> a signal was generated. Technical analysis is reduced to a recommendation badge.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 3: THE SOLUTION -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="3">
+  <div class="reveal">
+    <div class="eyebrow">The Solution</div>
+  </div>
+  <h2 class="reveal d1">
+    One signal.<br>
+    <span style="color: var(--accent-green);">Full trade thesis.</span>
+  </h2>
+  <p class="subtitle reveal d2">
+    SignalSniper AI ingests live forex data, runs it through 14 technical indicators, and returns a complete trade setup with AI-explained reasoning.
+  </p>
+  <div class="grid-2 reveal d3" style="margin-top: 2.5rem;">
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <div>
+          <div class="feature-title">14 Technical Indicators</div>
+          <div class="feature-desc">RSI, MACD, Bollinger Bands, EMA, SMA, Stochastic, ATR, ADX — all fed into the AI prompt context.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🎯</div>
+        <div>
+          <div class="feature-title">Trader-Grade Output</div>
+          <div class="feature-desc">Entry price, stop loss, take profit, risk:reward ratio, support/resistance levels, key pivot points.</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🧠</div>
+        <div>
+          <div class="feature-title">AI-Explained Reasoning</div>
+          <div class="feature-desc">Market sentiment, numbered reasons, risk warnings — not just "BUY" but <em>why</em> you should.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner card-inner-sm">
+        <div class="code-block">
+<span class="cm">// Structured AI output — not a black box</span>
+{
+  <span class="str">"recommendation"</span>: <span class="str">"SELL"</span>,
+  <span class="str">"confidence"</span>: <span class="num">68</span>,
+  <span class="str">"trend"</span>: <span class="str">"BEARISH"</span>,
+  <span class="str">"risk"</span>: <span class="str">"MEDIUM"</span>,
+  <span class="str">"entryPrice"</span>: <span class="num">1.1035</span>,
+  <span class="str">"stopLoss"</span>: <span class="num">1.1150</span>,
+  <span class="str">"takeProfit"</span>: <span class="num">1.0900</span>,
+  <span class="str">"riskRewardRatio"</span>: <span class="str">"1:2"</span>,
+  <span class="str">"marketSentiment"</span>: <span class="str">"..."</span>,
+  <span class="str">"reasons"</span>: [<span class="str">"..."</span>],
+  <span class="str">"warnings"</span>: [<span class="str">"..."</span>]
+}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 4: DUAL AI PIPELINE -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="4">
+  <div class="reveal">
+    <div class="eyebrow">Architecture</div>
+  </div>
+  <h2 class="reveal d1">
+    Dual AI Pipeline
+  </h2>
+  <p class="subtitle reveal d2" style="margin-bottom: 2.5rem;">
+    Two specialized AI layers — one for structured analysis, one for narrative explanation. Each optimized for its task.
+  </p>
+
+  <div class="grid-2 reveal d3">
+    <!-- Pipeline 1 -->
+    <div class="card-outer">
+      <div class="card-inner">
+        <div class="pill" style="margin-bottom: 1.25rem;">
+          <span style="color: var(--accent-cyan);">●</span> Pipeline 1 — Signal Generation
+        </div>
+        <h3 style="color: var(--accent-cyan); margin-bottom: 1rem;">Fireworks AI → Structured JSON</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <div class="pipeline-row">
+            <div class="pipeline-step" style="border-color: rgba(6,182,212,0.3);">Live Rates API</div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step" style="border-color: rgba(6,182,212,0.3);">14 Indicators</div>
+          </div>
+          <div class="pipeline-row">
+            <div class="pipeline-step" style="border-color: rgba(6,182,212,0.3);">Prompt Builder</div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step" style="border-color: rgba(6,182,212,0.3);">Gemma 3N 27B</div>
+          </div>
+          <div class="pipeline-row">
+            <div class="pipeline-step" style="border-color: rgba(6,182,212,0.3);">JSON Extractor</div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step" style="border-color: rgba(6,182,212,0.3);">Cache (1hr TTL)</div>
+          </div>
+        </div>
+        <p style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim); line-height: 1.6;">
+          <strong style="color: var(--text);">Fallback chain:</strong> gemma3n-27b → gpt-oss-120b. If primary model fails, secondary takes over automatically.
+        </p>
+      </div>
+    </div>
+    <!-- Pipeline 2 -->
+    <div class="card-outer">
+      <div class="card-inner">
+        <div class="pill" style="margin-bottom: 1.25rem;">
+          <span style="color: var(--accent-purple);">●</span> Pipeline 2 — Deep Explanation
+        </div>
+        <h3 style="color: var(--accent-purple); margin-bottom: 1rem;">AMD GPU + vLLM → Narrative</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <div class="pipeline-row">
+            <div class="pipeline-step" style="border-color: rgba(168,85,247,0.3);">Signal Data</div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step" style="border-color: rgba(168,85,247,0.3);">Prompt Template</div>
+          </div>
+          <div class="pipeline-row">
+            <div class="pipeline-step" style="border-color: rgba(168,85,247,0.3);">vLLM Server</div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step" style="border-color: rgba(168,85,247,0.3);">AMD GPU (ROCm)</div>
+          </div>
+          <div class="pipeline-row">
+            <div class="pipeline-step" style="border-color: rgba(168,85,247,0.3);">Gemma Model</div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step" style="border-color: rgba(168,85,247,0.3);">Analysis Text</div>
+          </div>
+        </div>
+        <p style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim); line-height: 1.6;">
+          <strong style="color: var(--text);">Mock ↔ Real toggle:</strong> One env var switches between mock mode and live AMD GPU inference. Zero code changes.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 5: END-TO-END DATA FLOW -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="5">
+  <div class="reveal">
+    <div class="eyebrow">Data Flow</div>
+  </div>
+  <h2 class="reveal d1">End-to-End Request Path</h2>
+  <p class="subtitle reveal d2" style="margin-bottom: 2.5rem;">
+    From browser click to AI inference and back — a complete signal analysis in under 3 seconds.
+  </p>
+  <div class="card-outer reveal d3">
+    <div class="card-inner" style="padding: 2.5rem;">
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Step 1 -->
+        <div style="display: flex; align-items: flex-start; gap: 1.25rem;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0,232,123,0.1); border: 1px solid rgba(0,232,123,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent-green); flex-shrink: 0;">1</div>
+          <div>
+            <h3>User clicks "Analyze" on a currency pair</h3>
+            <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">Dashboard sends <span class="mono" style="color: var(--accent-cyan);">POST /api/analyze</span> with pair name + live exchange rate from the auto-refreshing rate feed (60s interval).</p>
+          </div>
+        </div>
+        <!-- Step 2 -->
+        <div style="display: flex; align-items: flex-start; gap: 1.25rem;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent-cyan); flex-shrink: 0;">2</div>
+          <div>
+            <h3>Server checks in-memory cache (1hr TTL)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">If fresh data exists, it's returned instantly. Otherwise, the request proceeds to the Fireworks AI pipeline — saving tokens and reducing latency.</p>
+          </div>
+        </div>
+        <!-- Step 3 -->
+        <div style="display: flex; align-items: flex-start; gap: 1.25rem;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent-purple); flex-shrink: 0;">3</div>
+          <div>
+            <h3>Fireworks AI receives structured prompt with 14 indicators</h3>
+            <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">The prompt includes the pair name, live price, and all technical indicators (RSI, MACD, Bollinger, EMA, SMA, Stochastic, ATR, ADX, volume). Response is parsed with a robust JSON extractor (brace-depth tracking, markdown fence stripping).</p>
+          </div>
+        </div>
+        <!-- Step 4 -->
+        <div style="display: flex; align-items: flex-start; gap: 1.25rem;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent-amber); flex-shrink: 0;">4</div>
+          <div>
+            <h3>Optional: Gemma AI deep-dive via AMD GPU (vLLM)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">User clicks "Gemma AI Analysis" → signal data flows through a prompt template to a self-hosted Gemma model on AMD GPU via OpenAI-compatible vLLM endpoint. Returns a professional narrative paragraph.</p>
+          </div>
+        </div>
+        <!-- Step 5 -->
+        <div style="display: flex; align-items: flex-start; gap: 1.25rem;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent-blue); flex-shrink: 0;">5</div>
+          <div>
+            <h3>Dashboard renders full trade card</h3>
+            <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">Confidence bar, trend/risk metrics, entry/SL/TP, key levels table, market sentiment, numbered reasons, and risk warnings — all in a responsive, animated card.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 6: TECH STACK -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="6">
+  <div class="reveal">
+    <div class="eyebrow">Tech Stack</div>
+  </div>
+  <h2 class="reveal d1">Built With</h2>
+  <div class="grid-2-1 reveal d2" style="margin-top: 2rem;">
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div>
+        <div class="mono text-dim" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Frontend</div>
+        <div class="tech-grid">
+          <div class="tech-tag">Next.js 16</div>
+          <div class="tech-tag">React 19</div>
+          <div class="tech-tag">TypeScript</div>
+          <div class="tech-tag">Tailwind CSS 4</div>
+          <div class="tech-tag">Canvas API</div>
+        </div>
+      </div>
+      <div>
+        <div class="mono text-dim" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">AI / Inference</div>
+        <div class="tech-grid">
+          <div class="tech-tag" style="border-color: rgba(6,182,212,0.3);">Fireworks AI</div>
+          <div class="tech-tag" style="border-color: rgba(168,85,247,0.3);">Gemma 3N 27B</div>
+          <div class="tech-tag" style="border-color: rgba(168,85,247,0.3);">GPT-OSS 120B</div>
+          <div class="tech-tag" style="border-color: rgba(237,100,166,0.3);">vLLM Server</div>
+          <div class="tech-tag" style="border-color: rgba(237,100,166,0.3);">ROCm / AMD GPU</div>
+        </div>
+      </div>
+      <div>
+        <div class="mono text-dim" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.75rem;">Data</div>
+        <div class="tech-grid">
+          <div class="tech-tag">ExchangeRate API</div>
+          <div class="tech-tag">In-Memory Cache</div>
+          <div class="tech-tag">Promise.all Parallel</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner" style="display: flex; flex-direction: column; justify-content: center;">
+        <div style="text-align: center;">
+          <div class="stat-number text-green">16</div>
+          <div class="stat-label">Source Files</div>
+        </div>
+        <div style="width: 1px; height: 32px; background: var(--border); margin: 1.5rem auto;"></div>
+        <div style="text-align: center;">
+          <div class="stat-number text-cyan">4</div>
+          <div class="stat-label">API Endpoints</div>
+        </div>
+        <div style="width: 1px; height: 32px; background: var(--border); margin: 1.5rem auto;"></div>
+        <div style="text-align: center;">
+          <div class="stat-number text-purple">3</div>
+          <div class="stat-label">Forex Pairs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 7: AMD GPU INTEGRATION -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="7">
+  <div class="reveal">
+    <div class="eyebrow">AMD Integration</div>
+  </div>
+  <h2 class="reveal d1">
+    GPU-Accelerated Inference<br>
+    <span class="text-dim">on AMD Hardware</span>
+  </h2>
+  <div class="grid-2 reveal d2" style="margin-top: 2rem;">
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div class="card-outer">
+        <div class="card-inner card-inner-sm">
+          <div class="pill" style="margin-bottom: 1rem; border-color: rgba(237,100,166,0.3);">
+            <span style="color: #ed64a6;">●</span> vLLM + ROCm
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.7;">
+            The Gemma deep-explanation pipeline runs on a self-hosted <strong style="color: var(--text);">vLLM server</strong> with AMD ROCm acceleration. The OpenAI-compatible <span class="mono" style="color: var(--accent-cyan);">/v1/chat/completions</span> endpoint serves the Gemma model for narrative analysis.
+          </p>
+        </div>
+      </div>
+      <div class="card-outer">
+        <div class="card-inner card-inner-sm">
+          <div class="pill" style="margin-bottom: 1rem; border-color: rgba(0,232,123,0.3);">
+            <span style="color: var(--accent-green);">●</span> Zero-Config Toggle
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.7;">
+            A single environment variable switches between mock and real AMD GPU inference. The API route, frontend, and UI remain identical — <strong style="color: var(--text);">no code changes needed</strong> when moving to production hardware.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h3 style="margin-bottom: 1rem;">Why AMD for AI Inference?</h3>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="color: var(--accent-green); font-size: 0.9rem;">✓</span>
+              <span style="font-size: 0.85rem; color: var(--text-dim);">ROCm ecosystem mature for LLM inference</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="color: var(--accent-green); font-size: 0.9rem;">✓</span>
+              <span style="font-size: 0.85rem; color: var(--text-dim);">vLLM native support for AMD GPUs</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="color: var(--accent-green); font-size: 0.9rem;">✓</span>
+              <span style="font-size: 0.85rem; color: var(--text-dim);">Cost-effective vs. NVIDIA for inference workloads</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="color: var(--accent-green); font-size: 0.9rem;">✓</span>
+              <span style="font-size: 0.85rem; color: var(--text-dim);">Gemma 3N 27B runs efficiently on MI300X</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="color: var(--accent-green); font-size: 0.9rem;">✓</span>
+              <span style="font-size: 0.85rem; color: var(--text-dim);">High VRAM for large context windows</span>
+            </div>
+          </div>
+        </div>
+        <div class="code-block" style="margin-top: 1.5rem; font-size: 0.65rem;">
+<span class="cm"># One env var. That's it.</span>
+<span class="kw">GEMMA_API_URL</span>=<span class="str">http://AMD_GPU:8000/v1/chat/completions</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 8: TECHNICAL HIGHLIGHTS -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="8">
+  <div class="reveal">
+    <div class="eyebrow">Engineering</div>
+  </div>
+  <h2 class="reveal d1">Technical Highlights</h2>
+  <div class="grid-3 reveal d2" style="margin-top: 2rem;">
+    <div class="card-outer">
+      <div class="card-inner card-inner-sm">
+        <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">🛡️</div>
+        <h3>Robust JSON Extraction</h3>
+        <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          LLMs don't always return clean JSON. Our extractor strips markdown fences, then uses brace-depth tracking to find the JSON object — even in messy responses.
+        </p>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner card-inner-sm">
+        <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">🔄</div>
+        <h3>Model Fallback Chain</h3>
+        <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          Primary model (Gemma 3N 27B) fails? Automatic failover to GPT-OSS 120B. Zero downtime, no user-facing errors. Graceful degradation built in.
+        </p>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner card-inner-sm">
+        <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">⚡</div>
+        <h3>Parallel Signal Fetch</h3>
+        <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          All 3 forex pairs analyzed simultaneously via <span class="mono">Promise.all</span>. Combined with caching, dashboard loads in under 200ms on cache hit.
+        </p>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner card-inner-sm">
+        <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">🧩</div>
+        <h3>Prompt Engineering</h3>
+        <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          14 technical indicators injected into a structured prompt template. The AI receives market context, not just price — producing informed analysis.
+        </p>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner card-inner-sm">
+        <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">📡</div>
+        <h3>Live Rate Streaming</h3>
+        <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          Exchange rates auto-refresh every 60 seconds. The current rate is injected into each analysis prompt — AI always sees real-time data.
+        </p>
+      </div>
+    </div>
+    <div class="card-outer">
+      <div class="card-inner card-inner-sm">
+        <div style="font-size: 1.5rem; margin-bottom: 0.75rem;">🎨</div>
+        <h3>Canvas Animation Engine</h3>
+        <p style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.6;">
+          Custom particle system with 80 floating nodes, animated candlestick chart, and sine waves — all GPU-accelerated via requestAnimationFrame.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 9: WHAT MAKES IT DIFFERENT -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="9">
+  <div class="reveal">
+    <div class="eyebrow">Differentiation</div>
+  </div>
+  <h2 class="reveal d1">SignalSniper vs. Traditional Signals</h2>
+  <div class="card-outer reveal d2" style="margin-top: 2rem;">
+    <div class="card-inner" style="padding: 0; overflow: hidden;">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th style="padding-left: 2rem;">Feature</th>
+            <th>Traditional Signal Services</th>
+            <th style="color: var(--accent-green);">SignalSniper AI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding-left: 2rem;">Output</td>
+            <td>"BUY EUR/USD"</td>
+            <td class="highlight">Full trade thesis with 17 structured fields</td>
+          </tr>
+          <tr>
+            <td style="padding-left: 2rem;">Reasoning</td>
+            <td>None</td>
+            <td class="highlight">AI-explained market sentiment + numbered reasons</td>
+          </tr>
+          <tr>
+            <td style="padding-left: 2rem;">Risk Context</td>
+            <td>Generic "medium"</td>
+            <td class="highlight">Dynamic SL/TP, R:R ratio, support/resistance</td>
+          </tr>
+          <tr>
+            <td style="padding-left: 2rem;">Data Input</td>
+            <td>Price only</td>
+            <td class="highlight">14 technical indicators + live rates</td>
+          </tr>
+          <tr>
+            <td style="padding-left: 2rem;">AI Models</td>
+            <td>None (rule-based)</td>
+            <td class="highlight">Dual pipeline: Fireworks cloud + AMD GPU (Gemma)</td>
+          </tr>
+          <tr>
+            <td style="padding-left: 2rem;">Explainability</td>
+            <td>Black box</td>
+            <td class="highlight">Transparent reasoning, risk warnings, invalidation</td>
+          </tr>
+          <tr>
+            <td style="padding-left: 2rem;">Latency</td>
+            <td>Delayed alerts</td>
+            <td class="highlight">Real-time with 1hr intelligent caching</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SLIDE 10: ROADMAP & CLOSING -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="slide" data-slide="10">
+  <div class="reveal">
+    <div class="eyebrow">Roadmap</div>
+  </div>
+  <h2 class="reveal d1">What's Next</h2>
+  <div class="grid-2 reveal d2" style="margin-top: 2rem;">
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <div class="card-outer">
+        <div class="card-inner card-inner-sm" style="border-left: 2px solid var(--accent-green);">
+          <div class="pill" style="margin-bottom: 0.75rem; border-color: rgba(0,232,123,0.3);">Phase 1 — Now</div>
+          <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.6;">
+            3 major forex pairs, dual AI pipeline, live rates, structured trade cards with full AI-explained analysis.
+          </p>
+        </div>
+      </div>
+      <div class="card-outer">
+        <div class="card-inner card-inner-sm" style="border-left: 2px solid var(--accent-cyan);">
+          <div class="pill" style="margin-bottom: 0.75rem; border-color: rgba(6,182,212,0.3);">Phase 2 — Expand</div>
+          <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.6;">
+            Add 20+ forex pairs, crypto support, multi-timeframe analysis, backtesting engine, and user-defined risk profiles.
+          </p>
+        </div>
+      </div>
+      <div class="card-outer">
+        <div class="card-inner card-inner-sm" style="border-left: 2px solid var(--accent-purple);">
+          <div class="pill" style="margin-bottom: 0.75rem; border-color: rgba(168,85,247,0.3);">Phase 3 — Scale</div>
+          <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.6;">
+            Real-time WebSocket price feeds, push notifications, portfolio tracking, and multi-AMD-GPU inference cluster for low-latency serving.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem;">
+      <div class="logo-mark" style="margin-bottom: 2rem; font-size: 1.5rem;">
+        <div class="logo-icon" style="width: 48px; height: 48px; font-size: 1.3rem;">◎</div>
+        <span>SignalSniper AI</span>
+      </div>
+      <p style="font-family: var(--font-serif); font-size: 1.5rem; font-style: italic; color: var(--text-dim); line-height: 1.5; max-width: 320px;">
+        "Trade smarter<br>through understanding."
+      </p>
+      <div style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+        <div class="pill"><span style="color: var(--accent-green);">●</span> github.com/public321-ai/signalsniper-ai</div>
+        <div class="pill text-dim" style="margin-top: 0.5rem;">Built for AMD Hackathon 2026</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let current = 0;
+
+  const counter = document.getElementById('slideCounter');
+  const progressBar = document.getElementById('progressBar');
+  const navDotsContainer = document.getElementById('navDots');
+
+  // Build nav dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `Slide ${i + 1}`);
+    dot.addEventListener('click', () => goTo(i));
+    navDotsContainer.appendChild(dot);
+  }
+
+  function updateUI() {
+    const num = String(current + 1).padStart(2, '0');
+    counter.textContent = `${num} / ${String(totalSlides).padStart(2, '0')}`;
+    progressBar.style.width = `${((current + 1) / totalSlides) * 100}%`;
+    navDotsContainer.querySelectorAll('.nav-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  function goTo(index) {
+    if (index === current || index < 0 || index >= totalSlides) return;
+    const dir = index > current ? 'up' : 'down';
+    slides[current].classList.remove('active');
+    slides[current].classList.add(dir === 'up' ? 'exit-up' : '');
+    setTimeout(() => slides[current === index ? current : (dir === 'up' ? index - 1 : index + 1)].classList.remove('exit-up'), 700);
+
+    const prev = current;
+    current = index;
+    slides[current].classList.add('active');
+
+    // Clean up previous slide after transition
+    setTimeout(() => {
+      slides[prev].classList.remove('exit-up');
+    }, 700);
+
+    updateUI();
+  }
+
+  function next() { if (current < totalSlides - 1) goTo(current + 1); }
+  function prev() { if (current > 0) goTo(current - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    if (e.key === 'End') { e.preventDefault(); goTo(totalSlides - 1); }
+  });
+
+  // Touch/swipe support
+  let touchStartY = 0;
+  document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartY - e.changedTouches[0].clientY;
+    if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+  });
+
+  // Mouse wheel
+  let wheelTimeout = false;
+  document.addEventListener('wheel', (e) => {
+    if (wheelTimeout) return;
+    wheelTimeout = true;
+    if (e.deltaY > 0) next(); else prev();
+    setTimeout(() => { wheelTimeout = false; }, 800);
+  });
+
+  updateUI();
+})();
+</script>
+</body>
+</html>

@@ -77,7 +77,6 @@ export function extractJson(content: string): string | null {
 }
 
 const MODELS = [
-  "accounts/fireworks/models/gemma3n-27b",
   "accounts/fireworks/models/gpt-oss-120b",
 ];
 
