@@ -32,6 +32,21 @@ npm run dev
 
 Open http://localhost:3000
 
+## GitHub Codespaces
+
+Click to launch a fully configured development environment:
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/public321-ai/signalsniper-ai?branch=docker-hackathon)
+
+The devcontainer includes:
+
+- **Node.js 20** + TypeScript (matching the production Docker image)
+- **Docker-in-Docker** — build and test containers inside the Codespace
+- **GitHub CLI** — interact with GHCR, PRs, and releases
+- **VS Code extensions** — ESLint, Tailwind, Prettier, Docker
+- **Auto-setup** — `npm ci` on create, `npm run dev` on start
+- **Port 3000** — auto-forwarded on launch
+
 ## Docker Image
 
 Pre-built image available on GitHub Container Registry:
