@@ -32,6 +32,49 @@ npm run dev
 
 Open http://localhost:3000
 
+## Docker Image
+
+Pre-built image available on GitHub Container Registry:
+
+```
+ghcr.io/public321-ai/signalsniper-ai:latest
+```
+
+### Quick Start with Docker
+
+```bash
+# Pull and run
+docker run -p 3000:3000 -e FIREWORKS_API_KEY=<YOUR_API_KEY> ghcr.io/public321-ai/signalsniper-ai:latest
+
+# Or with Docker Compose
+cp .env.example .env
+# Add your FIREWORKS_API_KEY to .env
+docker compose up --build -d
+```
+
+Open http://localhost:3000
+
+### Health Check
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+### AMD AI Hackathon
+
+SignalSniper-AI is an autonomous Forex intelligence agent powered by Fireworks AI and Gemma models. It provides explainable trading insights using AI reasoning, token-efficient model routing, and containerized deployment optimized for AMD AI infrastructure.
+
+| Field | Value |
+|---|---|
+| **Docker Image** | `ghcr.io/public321-ai/signalsniper-ai:latest` |
+| **Repository** | https://github.com/public321-ai/signalsniper-ai |
+| **Branch** | `docker-hackathon` |
+| **AI Provider** | Fireworks AI |
+| **Models** | Gemma 3n 27B, GPT-OSS 120B |
+| **Optimization** | Hybrid Token Efficient Routing |
+
+See [README-Docker.md](./README-Docker.md) for full Docker documentation.
+
 ## API Endpoints
 
 ### POST /api/analyze
