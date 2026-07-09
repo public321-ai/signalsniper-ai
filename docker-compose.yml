@@ -1,0 +1,20 @@
+services:
+  signalsniper-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: signalsniper-ai:latest
+    container_name: signalsniper-ai
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
