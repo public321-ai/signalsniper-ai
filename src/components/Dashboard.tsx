@@ -353,15 +353,15 @@ export default function Dashboard() {
       {/* Nav */}
       <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-lg border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-slate-900 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="white" strokeWidth="2.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="white" strokeWidth="2.5">
                 <path d="M3 3l7 7M14 10l7-7M3 21l7-7M14 14l7 7" strokeLinecap="round"/>
                 <circle cx="12" cy="12" r="2.5" fill="white" stroke="none"/>
               </svg>
             </div>
-            <span className="text-sm font-semibold text-slate-900 tracking-tight">SignalSniper</span>
-            <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-blue-50 text-blue-700 rounded-md">AI</span>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">SignalSniper</span>
+            <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700 rounded-md">AI</span>
           </div>
           <div className="flex items-center gap-2.5 text-[11px] text-slate-500">
             <span className="flex items-center gap-1">
@@ -378,13 +378,16 @@ export default function Dashboard() {
       </header>
 
       <main className="flex-1">
-        {/* Compact hero — one line headline + thin subtitle */}
+        {/* Hero — headline + descriptive subtitle */}
         <section className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 pb-4">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
-            Forex signals, <span className="text-blue-600">explained</span>.
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 text-center">
+            Forex Signals. <span className="text-blue-600">Analyzed</span>. Explained. <span className="text-blue-600">Optimized</span>.
           </h1>
-          <p className="mt-1.5 text-sm text-slate-500">
-            Select a pair → AI evaluates 15+ indicators → get a full breakdown with reasons and risk warnings.
+          <p className="mt-1.5 text-sm font-medium text-slate-600">
+            High-Performance Forex Intelligence with Fireworks AI, AMD GPUs, and Explainable AI
+          </p>
+          <p className="mt-2 text-sm text-slate-500 leading-relaxed max-w-3xl">
+            Select a currency pair → SignalSniper AI performs multi-factor market analysis using 15+ technical indicators and intelligent AI reasoning → Receive transparent trading insights, confidence scores, entry/exit levels, and proactive risk warnings.
           </p>
         </section>
 
