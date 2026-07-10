@@ -13,6 +13,7 @@ Python FastAPI servers for local inference.
 | Context Agent | 8004 | `/analyze_market_context` | Market environment |
 | Historical Agent | 8005 | `/analyze_historical_pattern` | Historical patterns |
 | Orchestrator | 8006 | `/orchestrate` | Multi-agent coordination |
+| Score Engine | 8007 | `/calculate_sniper_score` | SignalSniper Score™ |
 
 ## Setup
 
@@ -43,19 +44,29 @@ uvicorn historical_pattern_agent:app --host 0.0.0.0 --port 8005
 
 # Terminal 7: Orchestrator
 uvicorn orchestrator_agent:app --host 0.0.0.0 --port 8006
+
+# Terminal 8: Score Engine
+uvicorn score_engine:app --host 0.0.0.0 --port 8007
 ```
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│           Multi-Agent Decision Pipeline (7 Agents)          │
-├─────────────────────────────────────────────────────────────┤
-│ Signal → Gemma → Validation → Risk → Contrarian → Context → Hist │
-│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)   (Env)    (Hist) │
-│                                                                ↓ │
-│                                                      Orchestrator │
-│                                                                ↓ │
-│                                                      Final Signal │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│              SignalSniper AI — Complete Intelligence Pipeline     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Signal → Gemma → Validation → Risk → Contrarian → Context → Hist │
+│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)   (Enviro)  (Hist) │
+│                                                                 │
+│  ↓                                                                │
+│  Multi-Agent Decision Orchestrator                                │
+│                                                                 │
+│  ↓                                                                │
+│  SignalSniper Score™ Engine                                       │
+│                                                                 │
+│  ↓                                                                │
+│  Final Trading Intelligence Report                                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
