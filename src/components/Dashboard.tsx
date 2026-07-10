@@ -403,15 +403,8 @@ export default function Dashboard() {
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-6 sm:pb-8">
           <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 ring-1 ring-blue-100 mb-4">
-              <span className="relative flex w-1.5 h-1.5">
-                <span className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75"></span>
-                <span className="relative rounded-full w-1.5 h-1.5 bg-blue-500"></span>
-              </span>
-              <span className="text-[11px] font-semibold text-blue-700 tracking-wide uppercase">AI-Powered Forex Intelligence</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
-              <span className="text-blue-600">AI Powered</span> Market Intel for Forex
+              <span className="text-blue-600">Autonomous</span> Forex Market Intelligence
             </h1>
             <p className="mt-3 text-xs sm:text-sm text-slate-500 leading-relaxed">
               Multi-factor analysis across <span className="font-semibold text-slate-700">15+ technical indicators</span> — delivered with confidence scores, entry/exit levels, and transparent AI reasoning.
