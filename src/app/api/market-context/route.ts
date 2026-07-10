@@ -80,6 +80,10 @@ function getSession(): { name: string; liquidity: string; quality: string } {
   return { name: "Off Hours", liquidity: "LOW", quality: "CAUTION" };
 }
 
+function lookupScore(map: Record<string, number>, key: string, fallback: number): number {
+  return map[key] ?? fallback;
+}
+
 function calculateScore(
   regimeScore: number,
   vol: { level: string; score: number },
@@ -87,9 +91,9 @@ function calculateScore(
   econRisk: string,
   currencyAlign: string
 ): number {
-  const sessionScore = { OPTIMAL: 100, FAVORABLE: 80, CAUTION: 60 }.get(sessionQuality, 50);
-  const econScore = { LOW: 100, MEDIUM: 70, HIGH: 40 }.get(econRisk, 80);
-  const currencyScore = { POSITIVE: 100, NEUTRAL: 70, MIXED: 50 }.get(currencyAlign, 70);
+  const sessionScore = lookupScore({ OPTIMAL: 100, FAVORABLE: 80, CAUTION: 60 }, sessionQuality, 50);
+  const econScore = lookupScore({ LOW: 100, MEDIUM: 70, HIGH: 40 }, econRisk, 80);
+  const currencyScore = lookupScore({ POSITIVE: 100, NEUTRAL: 70, MIXED: 50 }, currencyAlign, 70);
 
   return Math.round(
     regimeScore * 0.3 + vol.score * 0.25 + sessionScore * 0.2 + econScore * 0.15 + currencyScore * 0.1
