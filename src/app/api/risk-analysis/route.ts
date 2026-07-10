@@ -132,7 +132,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const entry = body.entry_price || Number(body.currentPrice) || 1;
+  const entry = body.entry_price || 1;
   const signal = body.signal.toUpperCase();
   const confidence = body.confidence || 50;
 
