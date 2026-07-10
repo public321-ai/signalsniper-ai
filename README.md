@@ -106,6 +106,21 @@ The primary analysis pipeline sends a rich prompt containing all 14 technical in
 
 After a signal is generated, users can click "Gemma AI Analysis" to get a deeper narrative explanation. This runs the `google/gemma-2-2b-it` model via NVIDIA's cloud API, with automatic mock fallback when no API key is configured.
 
+### Pipeline 3 — Signal Validation Agent (Second Opinion)
+
+Every signal passes through an independent AI validation layer that reviews indicator alignment, confidence accuracy, and risk factors. Returns APPROVED/CAUTION/REJECTED with a 0-100 quality score.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Three-Pipeline Architecture                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Signal Engine → Gemma Analysis → Validation Agent → Delivery     │
+│     (Fast)      (Detail)         (Skeptic)       (Final)       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 📡 API Endpoints
@@ -116,6 +131,10 @@ After a signal is generated, users can click "Gemma AI Analysis" to get a deeper
 | `GET` | `/api/signals` | Cached analyses for all 3 pairs (parallel) |
 | `GET` | `/api/rates` | Live exchange rates (60s cache) |
 | `POST` | `/api/gemma-analysis` | Gemma AI narrative deep-dive |
+| `POST` | `/api/gemma-local` | Local AMD GPU Gemma (port 8000) |
+| `POST` | `/api/validate-signal` | Signal Validation Agent (second opinion) |
+| `GET` | `/api/model-status` | Check available model providers |
+| `POST` | `/api/analyze-batch` | Parallel analysis for multiple pairs |
 
 ### POST /api/analyze
 
@@ -198,8 +217,11 @@ src/
 │   ├── api/
 │   │   ├── analyze/route.ts         — Fireworks AI signal analysis
 │   │   ├── gemma-analysis/route.ts  — Gemma AI narrative explanation
+│   │   ├── gemma-local/route.ts     — Local AMD GPU Gemma proxy
+│   │   ├── validate-signal/route.ts — Signal Validation Agent
 │   │   ├── rates/route.ts           — Live forex rates (60s refresh)
-│   │   └── signals/route.ts         — Parallel cached signals
+│   │   ├── signals/route.ts         — Parallel cached signals
+│   │   └── model-status/route.ts    — Model provider status
 │   ├── layout.tsx                   — Root layout + fonts
 │   ├── page.tsx                     — Dashboard entry point
 │   └── globals.css                  — Tailwind + theme tokens
@@ -210,9 +232,14 @@ src/
 ├── lib/
 │   ├── analyze.ts                   — Fireworks AI integration
 │   ├── cache.ts                     — In-memory 1hr TTL cache
-│   └── gemma-service.ts            — NVIDIA Gemma (mock/real)
+│   ├── gemma-service.ts            — NVIDIA Gemma (mock/real)
+│   └── gemma-local.ts              — Local AMD GPU Gemma client
 ├── prompts/
 │   └── forex_analysis_prompt.txt    — Gemma prompt template
+├── server/
+│   ├── gemma_server.py             — Local AMD GPU Gemma FastAPI
+│   ├── validation_agent.py         — Signal Validation Agent (FastAPI)
+│   └── README.md                   — Server setup docs
 └── types/
     └── signal.ts                    — TypeScript interfaces
 ```
@@ -261,8 +288,9 @@ Custom Canvas animation engine with 80-particle network, animated candlestick ch
 | Phase | Features |
 |-------|----------|
 | **Phase 1 ✓** | 3 major forex pairs, dual AI pipeline, live rates, structured trade cards, explainable AI |
-| **Phase 2** | 20+ forex pairs, crypto support, multi-timeframe analysis, backtesting engine, user-defined risk profiles |
-| **Phase 3** | WebSocket price feeds, push notifications, portfolio tracking, multi-GPU inference cluster |
+| **Phase 2 ✓** | Signal Validation Agent, local AMD GPU Gemma, batch analysis endpoint |
+| **Phase 3** | 20+ forex pairs, crypto support, multi-timeframe analysis, backtesting engine, user-defined risk profiles |
+| **Phase 4** | WebSocket price feeds, push notifications, portfolio tracking, multi-GPU inference cluster |
 
 ---
 
