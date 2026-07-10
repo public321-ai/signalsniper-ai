@@ -9,6 +9,7 @@ Python FastAPI servers for local inference.
 | Gemma Server | 8000 | `/generate`, `/chat` | Local Gemma narrative |
 | Validation Agent | 8001 | `/validate` | Signal verification |
 | Risk Agent | 8002 | `/analyze_risk` | Risk assessment |
+| Contrarian Agent | 8003 | `/analyze_counter_argument` | Skeptical review |
 
 ## Setup
 
@@ -27,14 +28,17 @@ uvicorn validation_agent:app --host 0.0.0.0 --port 8001
 
 # Terminal 3: Risk
 uvicorn risk_agent:app --host 0.0.0.0 --port 8002
+
+# Terminal 4: Contrarian
+uvicorn contrarian_agent:app --host 0.0.0.0 --port 8003
 ```
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│          Four-Agent Intelligence Pipeline            │
+│           Five-Agent Intelligence Pipeline           │
 ├─────────────────────────────────────────────────────┤
-│  Signal → Gemma → Validation → Risk → Final Output   │
+│  Signal → Gemma → Validation → Risk → Contrarian → Output │
 └─────────────────────────────────────────────────────┘
 ```

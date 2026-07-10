@@ -112,11 +112,11 @@ Every signal passes through an independent AI validation layer that reviews indi
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Four-Agent Intelligence Pipeline             │
+│                    Five-Agent Intelligence Pipeline               │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Signal Engine → Gemma Analysis → Validation Agent → Risk Agent  │
-│     (Fast)      (Detail)        (Logic)          (Safety)       │
+│  Signal → Gemma → Validation → Risk → Contrarian → Final Output   │
+│  (Fast)  (Detail)  (Logic)    (Safety)  (Skeptic)             │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -134,6 +134,7 @@ Every signal passes through an independent AI validation layer that reviews indi
 | `POST` | `/api/gemma-local` | Local AMD GPU Gemma (port 8000) |
 | `POST` | `/api/validate-signal` | Signal Validation Agent (second opinion) |
 | `POST` | `/api/risk-analysis` | Risk Management Agent (trade safety) |
+| `POST` | `/api/contrarian-analysis` | Contrarian Agent (skeptical review) |
 | `GET` | `/api/model-status` | Check available model providers |
 | `POST` | `/api/analyze-batch` | Parallel analysis for multiple pairs |
 
@@ -216,35 +217,37 @@ curl -X POST http://localhost:3000/api/gemma-analysis \
 src/
 ├── app/
 │   ├── api/
-│   │   ├── analyze/route.ts         — Fireworks AI signal analysis
-│   │   ├── gemma-analysis/route.ts  — Gemma AI narrative explanation
-│   │   ├── gemma-local/route.ts     — Local AMD GPU Gemma proxy
-│   │   ├── validate-signal/route.ts — Signal Validation Agent
-│   │   ├── risk-analysis/route.ts   — Risk Management Agent
-│   │   ├── rates/route.ts           — Live forex rates (60s refresh)
-│   │   ├── signals/route.ts         — Parallel cached signals
-│   │   └── model-status/route.ts    — Model provider status
-│   ├── layout.tsx                   — Root layout + fonts
-│   ├── page.tsx                     — Dashboard entry point
-│   └── globals.css                  — Tailwind + theme tokens
+│   │   ├── analyze/route.ts            — Fireworks AI signal analysis
+│   │   ├── gemma-analysis/route.ts     — Gemma AI narrative explanation
+│   │   ├── gemma-local/route.ts        — Local AMD GPU Gemma proxy
+│   │   ├── validate-signal/route.ts    — Signal Validation Agent
+│   │   ├── risk-analysis/route.ts      — Risk Management Agent
+│   │   ├── contrarian-analysis/route.ts — Contrarian Analysis Agent
+│   │   ├── rates/route.ts              — Live forex rates (60s refresh)
+│   │   ├── signals/route.ts            — Parallel cached signals
+│   │   └── model-status/route.ts       — Model provider status
+│   ├── layout.tsx                      — Root layout + fonts
+│   ├── page.tsx                        — Dashboard entry point
+│   └── globals.css                     — Tailwind + theme tokens
 ├── components/
-│   ├── Dashboard.tsx                — Main dashboard (300+ lines)
-│   ├── GemmaAnalysisButton.tsx      — AI deep-dive toggle
-│   └── CanvasBackground.tsx         — Animated particle system
+│   ├── Dashboard.tsx                   — Main dashboard (300+ lines)
+│   ├── GemmaAnalysisButton.tsx         — AI deep-dive toggle
+│   └── CanvasBackground.tsx            — Animated particle system
 ├── lib/
-│   ├── analyze.ts                   — Fireworks AI integration
-│   ├── cache.ts                     — In-memory 1hr TTL cache
-│   ├── gemma-service.ts            — NVIDIA Gemma (mock/real)
-│   └── gemma-local.ts              — Local AMD GPU Gemma client
+│   ├── analyze.ts                      — Fireworks AI integration
+│   ├── cache.ts                        — In-memory 1hr TTL cache
+│   ├── gemma-service.ts               — NVIDIA Gemma (mock/real)
+│   └── gemma-local.ts                 — Local AMD GPU Gemma client
 ├── prompts/
-│   └── forex_analysis_prompt.txt    — Gemma prompt template
+│   └── forex_analysis_prompt.txt       — Gemma prompt template
 ├── server/
-│   ├── gemma_server.py             — Local AMD GPU Gemma FastAPI
-│   ├── validation_agent.py         — Signal Validation Agent (port 8001)
-│   ├── risk_agent.py               — Risk Management Agent (port 8002)
-│   └── README.md                   — Server setup docs
+│   ├── gemma_server.py                — Local AMD GPU Gemma (8000)
+│   ├── validation_agent.py            — Signal Validation Agent (8001)
+│   ├── risk_agent.py                  — Risk Management Agent (8002)
+│   ├── contrarian_agent.py            — Contrarian Analysis Agent (8003)
+│   └── README.md                      — Server setup docs
 └── types/
-    └── signal.ts                    — TypeScript interfaces
+    └── signal.ts                       — TypeScript interfaces
 ```
 
 ---
