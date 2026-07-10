@@ -54,7 +54,7 @@ function aggregateAgentResults(data: OrchestratorInput): AgentSummary {
     },
     contrarian: {
       score: data.contrarian_analysis?.contrarian_result?.challenge_score ?? 50,
-      risk: data.contrarian_analysis?.contrarian_result?.challenge_score < 50 ? "HIGH" : "MODERATE"
+      risk: (data.contrarian_analysis?.contrarian_result?.challenge_score ?? 50) < 50 ? "HIGH" : "MODERATE"
     },
     market_context: {
       score: data.market_context?.market_context_score ?? 50,
