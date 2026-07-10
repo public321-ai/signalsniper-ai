@@ -18,8 +18,9 @@ export interface GemmaAnalysisResponse {
   model: string;
 }
 
-const NVIDIA_MODEL = "google/gemma-2-2b-it";
-const NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
+const LOCAL_API_URL = process.env.GEMMA_LOCAL_URL ?? "http://localhost:8000";
+const FIREWORKS_API_KEY = process.env.FIREWORKS_API_KEY;
+const FIREWORKS_FALLBACK = process.env.FIREWORKS_FALLBACK === "enabled";
 
 function loadPromptTemplate(): string {
   const filePath = join(process.cwd(), "src/prompts/forex_analysis_prompt.txt");
@@ -48,9 +49,35 @@ const MOCK_ANALYSES: Record<string, string> = {
     "USD/JPY's bearish signal at 155.50 entry reflects overbought conditions detected across RSI, stochastic, and Bollinger Band metrics, with the yen showing signs of recovery as BoJ policy normalization expectations grow. The 65% confidence score acknowledges the pair's historically strong uptrend and the risk that intervention threats or sustained carry-trade demand could delay the anticipated reversal. The 154.00 take profit aligns with near-term support, while the 157.00 stop loss sits just above recent resistance. HIGH risk designation is warranted given the pair's sensitivity to sudden BoJ policy shifts and potential government intervention—these represent the primary invalidation risks. A decisive break above 157.00 or an unexpectedly dovish BoJ statement would overturn the bearish thesis. Position sizing should account for the elevated volatility inherent in this politically sensitive cross.",
 };
 
-async function callNvidia(apiKey: string, prompt: string): Promise<string> {
+// Routing priority:
+// 1. Local AMD GPU Gemma (Primary)
+// 2. Fireworks AI (Optional, must be explicitly enabled)
+// 3. Mock Gemma (Development only)
+
+async function callLocalGemma(apiUrl: string, prompt: string): Promise<string> {
+  const response = await fetch(`${apiUrl}/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, max_tokens: 512, temperature: 0.7 }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Local Gemma error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = data.text || data.response;
+
+  if (!text) {
+    throw new Error("No response from local Gemma");
+  }
+
+  return text;
+}
+
+async function callFireworks(apiKey: string, prompt: string): Promise<string> {
   const response = await fetch(
-    `${NVIDIA_BASE_URL}/chat/completions`,
+    "https://api.fireworks.ai/inference/v1/chat/completions",
     {
       method: "POST",
       headers: {
@@ -58,7 +85,7 @@ async function callNvidia(apiKey: string, prompt: string): Promise<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: NVIDIA_MODEL,
+        model: "accounts/fireworks/models/gpt-oss-120b",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 512,
         temperature: 0.7,
@@ -68,46 +95,58 @@ async function callNvidia(apiKey: string, prompt: string): Promise<string> {
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`NVIDIA API error (${NVIDIA_MODEL}): ${response.status} — ${errText}`);
+    throw new Error(`Fireworks API error: ${response.status} — ${errText}`);
   }
 
   const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-
-  if (!content) {
-    throw new Error(`No response content from NVIDIA model ${NVIDIA_MODEL}`);
-  }
-
-  return content;
+  return data.choices?.[0]?.message?.content || "";
 }
 
 async function callMockGemma(params: GemmaAnalysisRequest): Promise<string> {
-  // Simulate network latency
   await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
-
   const key = params.symbol.replace("/", "").toUpperCase();
-  const mock = MOCK_ANALYSES[key] ?? MOCK_ANALYSES["EURUSD"];
-  return mock;
+  return MOCK_ANALYSES[key] ?? MOCK_ANALYSES["EURUSD"];
 }
 
 export async function analyzeWithGemma(
   params: GemmaAnalysisRequest
 ): Promise<GemmaAnalysisResponse> {
-  const apiKey = process.env.NVIDIA_API_KEY;
+  const template = loadPromptTemplate();
+  const prompt = fillTemplate(template, params);
 
-  if (apiKey) {
-    // NVIDIA API with Gemma model
-    const template = loadPromptTemplate();
-    const prompt = fillTemplate(template, params);
+  // 1. Try Local AMD GPU Gemma (Primary)
+  const localUrl = process.env.GEMMA_LOCAL_URL;
+  if (localUrl) {
     try {
-      const analysis = await callNvidia(apiKey, prompt);
-      return { symbol: params.symbol, analysis, model: NVIDIA_MODEL };
+      const analysis = await callLocalGemma(localUrl, prompt);
+      return { symbol: params.symbol, analysis, model: "gemma-local" };
     } catch (err) {
-      console.warn("NVIDIA call failed, falling back to mock…", err);
+      console.warn("Local Gemma unavailable:", err);
     }
   }
 
-  // Mock mode — no NVIDIA_API_KEY or NVIDIA call failed
+  // 2. Try Fireworks AI (Optional fallback - must be explicitly enabled)
+  if (FIREWORKS_FALLBACK && FIREWORKS_API_KEY) {
+    try {
+      const analysis = await callFireworks(FIREWORKS_API_KEY, prompt);
+      if (analysis) {
+        return { symbol: params.symbol, analysis, model: "fireworks-gpt-oss" };
+      }
+    } catch (err) {
+      console.warn("Fireworks fallback failed:", err);
+    }
+  }
+
+  // 3. Check if fallback is disabled and no local model
+  if (!FIREWORKS_FALLBACK) {
+    return {
+      symbol: params.symbol,
+      analysis: "Service unavailable: Local Gemma not configured. Set GEMMA_LOCAL_URL or enable FIREWORKS_FALLBACK=enabled.",
+      model: "service-unavailable"
+    };
+  }
+
+  // 4. Mock Gemma (Development/demonstration)
   const analysis = await callMockGemma(params);
   return { symbol: params.symbol, analysis, model: "gemma-mock" };
 }
