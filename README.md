@@ -112,11 +112,11 @@ Every signal passes through an independent AI validation layer that reviews indi
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Three-Pipeline Architecture                    │
+│                     Four-Agent Intelligence Pipeline             │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Signal Engine → Gemma Analysis → Validation Agent → Delivery     │
-│     (Fast)      (Detail)         (Skeptic)       (Final)       │
+│  Signal Engine → Gemma Analysis → Validation Agent → Risk Agent  │
+│     (Fast)      (Detail)        (Logic)          (Safety)       │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -133,6 +133,7 @@ Every signal passes through an independent AI validation layer that reviews indi
 | `POST` | `/api/gemma-analysis` | Gemma AI narrative deep-dive |
 | `POST` | `/api/gemma-local` | Local AMD GPU Gemma (port 8000) |
 | `POST` | `/api/validate-signal` | Signal Validation Agent (second opinion) |
+| `POST` | `/api/risk-analysis` | Risk Management Agent (trade safety) |
 | `GET` | `/api/model-status` | Check available model providers |
 | `POST` | `/api/analyze-batch` | Parallel analysis for multiple pairs |
 
@@ -219,6 +220,7 @@ src/
 │   │   ├── gemma-analysis/route.ts  — Gemma AI narrative explanation
 │   │   ├── gemma-local/route.ts     — Local AMD GPU Gemma proxy
 │   │   ├── validate-signal/route.ts — Signal Validation Agent
+│   │   ├── risk-analysis/route.ts   — Risk Management Agent
 │   │   ├── rates/route.ts           — Live forex rates (60s refresh)
 │   │   ├── signals/route.ts         — Parallel cached signals
 │   │   └── model-status/route.ts    — Model provider status
@@ -238,7 +240,8 @@ src/
 │   └── forex_analysis_prompt.txt    — Gemma prompt template
 ├── server/
 │   ├── gemma_server.py             — Local AMD GPU Gemma FastAPI
-│   ├── validation_agent.py         — Signal Validation Agent (FastAPI)
+│   ├── validation_agent.py         — Signal Validation Agent (port 8001)
+│   ├── risk_agent.py               — Risk Management Agent (port 8002)
 │   └── README.md                   — Server setup docs
 └── types/
     └── signal.ts                    — TypeScript interfaces
