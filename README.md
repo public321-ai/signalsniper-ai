@@ -156,6 +156,7 @@ Every signal passes through an independent AI validation layer that reviews indi
 | `POST` | `/api/historical-pattern` | Historical Pattern Intelligence Agent |
 | `POST` | `/api/orchestrate` | Multi-Agent Decision Orchestrator |
 | `POST` | `/api/sniper-score` | SignalSniper Score™ Engine |
+| `POST` | `/api/generate-report` | AI Trade Report Generator |
 | `GET` | `/api/model-status` | Check available model providers |
 | `POST` | `/api/analyze-batch` | Parallel analysis for multiple pairs |
 

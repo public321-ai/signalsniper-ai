@@ -14,6 +14,7 @@ Python FastAPI servers for local inference.
 | Historical Agent | 8005 | `/analyze_historical_pattern` | Historical patterns |
 | Orchestrator | 8006 | `/orchestrate` | Multi-agent coordination |
 | Score Engine | 8007 | `/calculate_sniper_score` | SignalSniper Score™ |
+| Report Generator | 8008 | `/generate_trade_report` | AI Trade Report |
 
 ## Setup
 
@@ -47,6 +48,9 @@ uvicorn orchestrator_agent:app --host 0.0.0.0 --port 8006
 
 # Terminal 8: Score Engine
 uvicorn score_engine:app --host 0.0.0.0 --port 8007
+
+# Terminal 9: Report Generator
+uvicorn report_generator:app --host 0.0.0.0 --port 8008
 ```
 
 ## Architecture
