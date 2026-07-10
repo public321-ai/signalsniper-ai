@@ -10,6 +10,7 @@ Python FastAPI servers for local inference.
 | Validation Agent | 8001 | `/validate` | Signal verification |
 | Risk Agent | 8002 | `/analyze_risk` | Risk assessment |
 | Contrarian Agent | 8003 | `/analyze_counter_argument` | Skeptical review |
+| Context Agent | 8004 | `/analyze_market_context` | Market environment |
 
 ## Setup
 
@@ -37,8 +38,9 @@ uvicorn contrarian_agent:app --host 0.0.0.0 --port 8003
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│           Five-Agent Intelligence Pipeline           │
+│            Six-Agent Intelligence Pipeline           │
 ├─────────────────────────────────────────────────────┤
-│  Signal → Gemma → Validation → Risk → Contrarian → Output │
+│ Signal → Gemma → Validation → Risk → Contrarian → Context │
+│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)  (Env) │
 └─────────────────────────────────────────────────────┘
 ```
