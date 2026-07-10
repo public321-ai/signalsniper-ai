@@ -112,11 +112,11 @@ Every signal passes through an independent AI validation layer that reviews indi
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Five-Agent Intelligence Pipeline               │
+│                   Six-Agent Intelligence Pipeline                │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Signal → Gemma → Validation → Risk → Contrarian → Final Output   │
-│  (Fast)  (Detail)  (Logic)    (Safety)  (Skeptic)             │
+│  Signal → Gemma → Validation → Risk → Contrarian → Context → Historical │
+│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)  (Enviro)  (History) │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -135,6 +135,8 @@ Every signal passes through an independent AI validation layer that reviews indi
 | `POST` | `/api/validate-signal` | Signal Validation Agent (second opinion) |
 | `POST` | `/api/risk-analysis` | Risk Management Agent (trade safety) |
 | `POST` | `/api/contrarian-analysis` | Contrarian Agent (skeptical review) |
+| `POST` | `/api/market-context` | Market Context Intelligence Agent |
+| `POST` | `/api/historical-pattern` | Historical Pattern Intelligence Agent |
 | `GET` | `/api/model-status` | Check available model providers |
 | `POST` | `/api/analyze-batch` | Parallel analysis for multiple pairs |
 
@@ -217,20 +219,22 @@ curl -X POST http://localhost:3000/api/gemma-analysis \
 src/
 ├── app/
 │   ├── api/
-│   │   ├── analyze/route.ts            — Fireworks AI signal analysis
-│   │   ├── gemma-analysis/route.ts     — Gemma AI narrative explanation
-│   │   ├── gemma-local/route.ts        — Local AMD GPU Gemma proxy
-│   │   ├── validate-signal/route.ts    — Signal Validation Agent
-│   │   ├── risk-analysis/route.ts      — Risk Management Agent
-│   │   ├── contrarian-analysis/route.ts — Contrarian Analysis Agent
-│   │   ├── rates/route.ts              — Live forex rates (60s refresh)
-│   │   ├── signals/route.ts            — Parallel cached signals
-│   │   └── model-status/route.ts       — Model provider status
-│   ├── layout.tsx                      — Root layout + fonts
-│   ├── page.tsx                        — Dashboard entry point
-│   └── globals.css                     — Tailwind + theme tokens
+│   │   ├── analyze/route.ts                — Fireworks AI signal analysis
+│   │   ├── gemma-analysis/route.ts       — Gemma AI narrative explanation
+│   │   ├── gemma-local/route.ts          — Local AMD GPU Gemma proxy
+│   │   ├── validate-signal/route.ts      — Signal Validation Agent
+│   │   ├── risk-analysis/route.ts        — Risk Management Agent
+│   │   ├── contrarian-analysis/route.ts  — Contrarian Analysis Agent
+│   │   ├── historical-pattern/route.ts   — Historical Pattern Intelligence Agent
+│   │   ├── market-context/route.ts       — Market Context Intelligence Agent
+│   │   ├── rates/route.ts                — Live forex rates (60s refresh)
+│   │   ├── signals/route.ts              — Parallel cached signals
+│   │   └── model-status/route.ts         — Model provider status
+│   ├── layout.tsx                        — Root layout + fonts
+│   ├── page.tsx                          — Dashboard entry point
+│   └── globals.css                       — Tailwind + theme tokens
 ├── components/
-│   ├── Dashboard.tsx                   — Main dashboard (300+ lines)
+│   ├── Dashboard.tsx                     — Main dashboard (300+ lines)
 │   ├── GemmaAnalysisButton.tsx         — AI deep-dive toggle
 │   └── CanvasBackground.tsx            — Animated particle system
 ├── lib/
@@ -245,6 +249,8 @@ src/
 │   ├── validation_agent.py            — Signal Validation Agent (8001)
 │   ├── risk_agent.py                  — Risk Management Agent (8002)
 │   ├── contrarian_agent.py            — Contrarian Analysis Agent (8003)
+│   ├── market_context_agent.py        — Market Context Agent (8004)
+│   ├── historical_pattern_agent.py    — Historical Pattern Agent (8005)
 │   └── README.md                      — Server setup docs
 └── types/
     └── signal.ts                       — TypeScript interfaces

@@ -11,6 +11,7 @@ Python FastAPI servers for local inference.
 | Risk Agent | 8002 | `/analyze_risk` | Risk assessment |
 | Contrarian Agent | 8003 | `/analyze_counter_argument` | Skeptical review |
 | Context Agent | 8004 | `/analyze_market_context` | Market environment |
+| Historical Agent | 8005 | `/analyze_historical_pattern` | Historical patterns |
 
 ## Setup
 
@@ -32,15 +33,21 @@ uvicorn risk_agent:app --host 0.0.0.0 --port 8002
 
 # Terminal 4: Contrarian
 uvicorn contrarian_agent:app --host 0.0.0.0 --port 8003
+
+# Terminal 5: Context
+uvicorn market_context_agent:app --host 0.0.0.0 --port 8004
+
+# Terminal 6: Historical
+uvicorn historical_pattern_agent:app --host 0.0.0.0 --port 8005
 ```
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│            Six-Agent Intelligence Pipeline           │
+│          Seven-Agent Intelligence Pipeline            │
 ├─────────────────────────────────────────────────────┤
-│ Signal → Gemma → Validation → Risk → Contrarian → Context │
-│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)  (Env) │
+│ Signal → Gemma → Validation → Risk → Contrarian → Context → Historical │
+│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)   (Enviro)    (Hist) │
 └─────────────────────────────────────────────────────┘
 ```
