@@ -48,10 +48,14 @@ uvicorn orchestrator_agent:app --host 0.0.0.0 --port 8006
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│          Seven-Agent Intelligence Pipeline            │
-├─────────────────────────────────────────────────────┤
-│ Signal → Gemma → Validation → Risk → Contrarian → Context → Historical │
-│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)   (Enviro)    (Hist) │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│           Multi-Agent Decision Pipeline (7 Agents)          │
+├─────────────────────────────────────────────────────────────┤
+│ Signal → Gemma → Validation → Risk → Contrarian → Context → Hist │
+│  (Fast)  (Detail)  (Logic)  (Safety)  (Skeptic)   (Env)    (Hist) │
+│                                                                ↓ │
+│                                                      Orchestrator │
+│                                                                ↓ │
+│                                                      Final Signal │
+└─────────────────────────────────────────────────────────────┘
 ```

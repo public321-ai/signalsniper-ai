@@ -137,6 +137,7 @@ Every signal passes through an independent AI validation layer that reviews indi
 | `POST` | `/api/contrarian-analysis` | Contrarian Agent (skeptical review) |
 | `POST` | `/api/market-context` | Market Context Intelligence Agent |
 | `POST` | `/api/historical-pattern` | Historical Pattern Intelligence Agent |
+| `POST` | `/api/orchestrate` | Multi-Agent Decision Orchestrator (final) |
 | `GET` | `/api/model-status` | Check available model providers |
 | `POST` | `/api/analyze-batch` | Parallel analysis for multiple pairs |
 
@@ -227,6 +228,7 @@ src/
 │   │   ├── contrarian-analysis/route.ts  — Contrarian Analysis Agent
 │   │   ├── historical-pattern/route.ts   — Historical Pattern Intelligence Agent
 │   │   ├── market-context/route.ts       — Market Context Intelligence Agent
+│   │   ├── orchestrate/route.ts          — Multi-Agent Orchestrator |
 │   │   ├── rates/route.ts                — Live forex rates (60s refresh)
 │   │   ├── signals/route.ts              — Parallel cached signals
 │   │   └── model-status/route.ts         — Model provider status
