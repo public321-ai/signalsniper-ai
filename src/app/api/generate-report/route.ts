@@ -10,7 +10,7 @@ export interface ReportInput {
     validation?: { score: number };
     risk_analysis?: { risk_level: string; risk_reward_ratio: string; warnings: string[] };
     contrarian_analysis?: { contrarian_result: { challenge_score: number; risk_factors: string[] } };
-    market_context?: { market_regime: string; trend_direction: string; volatility: { level: string } };
+    market_context?: { market_regime: string; trend_direction: string; volatility: { level: string }; market_context_score?: number };
     historical_analysis?: { similar_patterns_found: number; historical_success_rate: string };
   };
   format?: "json" | "markdown";
@@ -33,6 +33,7 @@ export interface ReportSection {
   volatility?: string;
   similar_patterns?: number;
   success_rate?: string;
+  [key: string]: unknown;
 }
 
 export interface TradeReport {
