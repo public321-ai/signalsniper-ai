@@ -61,8 +61,13 @@ npm install
 Create `.env.local`:
 
 ```env
+# Model Routing Configuration
+GEMMA_LOCAL_URL=http://localhost:8000     # Primary: Local AMD GPU Gemma (ROCm)
+FIREWORKS_FALLBACK=enabled                # Optional: Enable Fireworks as fallback
+FIREWORKS_API_KEY=fw_your_key_here        # Required if using Fireworks fallback
+
+# Signal Analysis
 FIREWORKS_API_KEY=fw_your_key_here
-NVIDIA_API_KEY=                          # Leave empty for mock Gemma mode
 ```
 
 ```bash
@@ -102,9 +107,21 @@ The primary analysis pipeline sends a rich prompt containing all 14 technical in
 1. `gemma3n-27b` (primary)
 2. `gpt-oss-120b` (automatic failover)
 
-### Pipeline 2 — NVIDIA GPU (Narrative Explanation)
+### Pipeline 2 — Gemma Narrative Engine (Local AMD GPU)
 
-After a signal is generated, users can click "Gemma AI Analysis" to get a deeper narrative explanation. This runs the `google/gemma-2-2b-it` model via NVIDIA's cloud API, with automatic mock fallback when no API key is configured.
+After a signal is generated, users can click "Gemma AI Analysis" to get a deeper narrative explanation. Uses the `GEMMA_LOCAL_URL` endpoint with local AMD GPU inference. Falls back to Fireworks AI only when `FIREWORKS_FALLBACK=enabled`.
+
+### Model Routing Strategy
+
+SignalSniper AI uses configurable provider routing:
+
+1. **Local AMD GPU Gemma** (Primary) — `GEMMA_LOCAL_URL`
+2. **Fireworks AI** (Optional fallback) — `FIREWORKS_FALLBACK=enabled`
+3. **Mock Gemma** (Development only)
+
+Set `FIREWORKS_FALLBACK=enabled` to allow Fireworks fallback. Otherwise, service returns "unavailable" message if local model is offline.
+
+---
 
 ### Pipeline 3 — Signal Validation Agent (Second Opinion)
 
