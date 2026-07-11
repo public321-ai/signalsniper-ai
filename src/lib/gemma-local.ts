@@ -39,6 +39,35 @@ export async function callLocalGemmaGenerate(
   const template = loadPromptTemplate();
   const prompt = fillTemplate(template, params);
 
+  const isVLLM = LOCAL_API_URL.includes("/v1");
+
+  if (isVLLM) {
+    const response = await fetch(`${LOCAL_API_URL}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemma-3-12b-it",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 512,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Local Gemma API error: ${response.status} — ${errText}`);
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || data.text || data.response || data.generated_text;
+
+    if (!text) {
+      throw new Error("No response content from local Gemma model");
+    }
+
+    return { text, model: "vllm-gemma-3-12b" };
+  }
+
   const response = await fetch(`${LOCAL_API_URL}/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -67,6 +96,35 @@ export async function callLocalGemmaGenerate(
 export async function callLocalGemmaChat(
   messages: Array<{ role: string; content: string }>
 ): Promise<LocalGemmaResponse> {
+  const isVLLM = LOCAL_API_URL.includes("/v1");
+
+  if (isVLLM) {
+    const response = await fetch(`${LOCAL_API_URL}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemma-3-12b-it",
+        messages,
+        max_tokens: 512,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Local Gemma Chat API error: ${response.status} — ${errText}`);
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || data.text || data.response || data.content;
+
+    if (!text) {
+      throw new Error("No response content from local Gemma chat endpoint");
+    }
+
+    return { text, model: "vllm-gemma-3-12b" };
+  }
+
   const response = await fetch(`${LOCAL_API_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

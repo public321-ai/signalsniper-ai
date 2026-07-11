@@ -55,6 +55,36 @@ const MOCK_ANALYSES: Record<string, string> = {
 // 3. Mock Gemma (Development only)
 
 async function callLocalGemma(apiUrl: string, prompt: string): Promise<string> {
+  // Try vLLM OpenAI-compatible endpoint first (if /v1 in path)
+  const isVLLM = apiUrl.includes("/v1");
+
+  if (isVLLM) {
+    const response = await fetch(`${apiUrl}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemma-3-12b-it",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 512,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Local Gemma error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || data.text;
+
+    if (!text) {
+      throw new Error("No response from local Gemma");
+    }
+
+    return text;
+  }
+
+  // Fallback to FastAPI /generate endpoint
   const response = await fetch(`${apiUrl}/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

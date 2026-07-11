@@ -60,13 +60,17 @@ npm install
 Create `.env.local`:
 
 ```env
-# Model Routing Configuration
-GEMMA_LOCAL_URL=http://localhost:8000     # Primary: Local AMD GPU Gemma (ROCm)
-FIREWORKS_FALLBACK=enabled                # Optional: Enable Fireworks as fallback
-FIREWORKS_API_KEY=fw_your_key_here        # Required if using Fireworks fallback
-
-# Signal Analysis
+# Fireworks AI (Primary for signal generation)
 FIREWORKS_API_KEY=fw_your_key_here
+
+# Local AMD GPU Gemma (Optional, for narrative analysis)
+# For FastAPI server:
+GEMMA_LOCAL_URL=http://localhost:8000
+# For vLLM (recommended):
+# GEMMA_LOCAL_URL=http://localhost:8000/v1
+
+# Enable Fireworks fallback if local Gemma unavailable
+# FIREWORKS_FALLBACK=enabled
 ```
 
 ```bash
@@ -93,7 +97,7 @@ Open [http://localhost:3000](http://localhost:3000)
 │  │  → JSON Extract → Cache (1hr)      │  │  → Analysis Text   │  │
 │  └────────────────────────────────────┘  └────────────────────┘  │
 │                                                                   │
-│  Fallback: gemma3n-27b → gpt-oss-120b  │ Mock↔Real: 1 env var   │
+│  Model: gpt-oss-120b                   │ Mock↔Real: 1 env var   │
 │  Zero downtime, automatic failover      │ Zero code changes      │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -102,9 +106,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 The primary analysis pipeline sends a rich prompt containing all 14 technical indicators + live price to Fireworks AI. The response is parsed with a robust JSON extractor that handles markdown fences and malformed output.
 
-**Model fallback chain:**
-1. `gemma3n-27b` (primary)
-2. `gpt-oss-120b` (automatic failover)
+**Model:** `gpt-oss-120b` (Fireworks AI)
 
 ### Pipeline 2 — Gemma Narrative Engine (Local AMD GPU)
 
@@ -256,67 +258,6 @@ curl -X POST http://localhost:3000/api/gemma-analysis \
 
 ---
 
-## 🏗️ Project Structure
-
-```
-src/
-├── app/
-│   ├── api/
-│   │   ├── analyze/route.ts                — Fireworks AI signal analysis
-│   │   ├── gemma-analysis/route.ts       — Gemma AI narrative explanation
-│   │   ├── gemma-local/route.ts          — Local AMD GPU Gemma proxy
-│   │   ├── validate-signal/route.ts      — Signal Validation Agent
-│   │   ├── risk-analysis/route.ts        — Risk Management Agent
-│   │   ├── contrarian-analysis/route.ts  — Contrarian Analysis Agent
-│   │   ├── historical-pattern/route.ts   — Historical Pattern Intelligence Agent
-│   │   ├── market-context/route.ts       — Market Context Intelligence Agent
-│   │   ├── orchestrate/route.ts          — Multi-Agent Orchestrator |
-│   │   ├── rates/route.ts                — Live forex rates (60s refresh)
-│   │   ├── signals/route.ts              — Parallel cached signals
-│   │   └── model-status/route.ts         — Model provider status
-│   ├── layout.tsx                        — Root layout + fonts
-│   ├── page.tsx                          — Dashboard entry point
-│   └── globals.css                       — Tailwind + theme tokens
-├── components/
-│   ├── Dashboard.tsx                     — Main dashboard (300+ lines)
-│   ├── GemmaAnalysisButton.tsx         — AI deep-dive toggle
-│   └── CanvasBackground.tsx            — Animated particle system
-├── lib/
-│   ├── analyze.ts                      — Fireworks AI integration
-│   ├── cache.ts                        — In-memory 1hr TTL cache
-│   ├── gemma-service.ts               — Local AMD GPU Gemma (mock/real)
-│   └── gemma-local.ts                 — Local AMD GPU Gemma client
-├── prompts/
-│   └── forex_analysis_prompt.txt       — Gemma prompt template
-├── server/
-│   ├── gemma_server.py                — Local AMD GPU Gemma (8000)
-│   ├── validation_agent.py            — Signal Validation Agent (8001)
-│   ├── risk_agent.py                  — Risk Management Agent (8002)
-│   ├── contrarian_agent.py            — Contrarian Analysis Agent (8003)
-│   ├── market_context_agent.py        — Market Context Agent (8004)
-│   ├── historical_pattern_agent.py    — Historical Pattern Agent (8005)
-│   └── README.md                      — Server setup docs
-└── types/
-    └── signal.ts                       — TypeScript interfaces
-```
-
----
-
-## 🛠️ Tech Stack
-
-| Category | Technology |
-|----------|-----------|
-| **Framework** | Next.js 16 (App Router), React 19 |
-| **Language** | TypeScript |
-| **Styling** | Tailwind CSS 4 |
-| **Cloud AI** | Fireworks AI (gpt-oss-120b, gemma3n-27b) |
-| **GPU AI** | Local AMD GPU (google/gemma-2-2b-it) |
-| **Data** | ExchangeRate API (free, no key) |
-| **Caching** | In-memory 1-hour TTL |
-| **Animations** | Canvas API (particles, candlesticks) |
-
----
-
 ## ✨ Key Features
 
 ### 📊 Technical Analysis
@@ -336,6 +277,147 @@ All 3 forex pairs analyzed simultaneously via `Promise.all`. Combined with cachi
 
 ### 🎨 Immersive UI
 Custom Canvas animation engine with 80-particle network, animated candlestick chart, sine waves, and a responsive glass-morphism design.
+
+---
+
+## 🖥️ Main Code Paths
+
+### Frontend (TypeScript)
+```
+src/
+├── app/api/          — API routes (TypeScript)
+├── components/       — React components
+├── lib/             — Core libraries (analyze.ts, gemma-service.ts)
+├── types/           — TypeScript interfaces
+└── prompts/         — AI prompt templates
+```
+
+### Python Agent Servers
+```
+server/
+├── gemma_server.py            — Port 8000: Local AMD GPU Gemma inference
+├── validation_agent.py          — Port 8001: Signal validation
+├── risk_agent.py                — Port 8002: Risk analysis
+├── contrarian_agent.py          — Port 8003: Skeptical review
+├── market_context_agent.py      — Port 8004: Market context
+├── historical_pattern_agent.py  — Port 8005: Historical patterns
+├── orchestrator_agent.py        — Port 8006: Multi-agent coordination
+├── score_engine.py              — Port 8007: SignalSniper Score™
+└── report_generator.py          — Port 8008: Trade report generation
+```
+
+---
+
+## 🚀 Complete Setup
+
+### 1. Frontend (Node.js)
+```bash
+npm install
+```
+
+Create `.env.local`:
+```env
+# Fireworks AI (Primary for signal generation)
+FIREWORKS_API_KEY=fw_your_key_here
+
+# Local AMD GPU Gemma via vLLM (running on port 8000)
+GEMMA_LOCAL_URL=http://localhost:8000/v1
+
+# Enable Fireworks fallback if local Gemma unavailable
+# FIREWORKS_FALLBACK=enabled
+```
+
+```bash
+npm run dev
+# Open http://localhost:3000
+```
+
+### 2. Python Agent Servers (AMD GPU)
+
+**For vLLM (running google/gemma-3-12b-it on port 8000):**
+- No additional setup needed — the vLLM server is already running
+- vLLM provides OpenAI-compatible endpoints at `http://localhost:8000/v1/`
+
+**For other agents (ports 8001-8008):**
+```bash
+pip install fastapi uvicorn torch transformers accelerate
+
+# Run individual agents
+uvicorn validation_agent:app --port 8001
+uvicorn risk_agent:app --port 8002
+uvicorn contrarian_agent:app --port 8003
+uvicorn market_context_agent:app --port 8004
+uvicorn historical_pattern_agent:app --port 8005
+uvicorn orchestrator_agent:app --port 8006
+uvicorn score_engine:app --port 8007
+uvicorn report_generator:app --port 8008
+```
+
+---
+
+## 🖥️ AMD Resource Usage
+
+### AMD GPU Requirements
+- **ROCm-compatible GPU** (Radeon VII, RX 6000/7000 series, or Instinct MI series)
+- **VRAM**: 8GB+ minimum for Gemma-3-12B, 4GB+ for Gemma-3n-E2B
+- **ROCm drivers** 5.7+ recommended
+
+### Local Inference Options
+
+**Option A: FastAPI server (server/gemma_server.py)**
+```bash
+uvicorn gemma_server:app --host 0.0.0.0 --port 8000
+```
+Uses Hugging Face Transformers with PyTorch. Environment variable:
+```python
+model_name = os.getenv("GEMMA_MODEL", "google/gemma-3n-e2b-it")
+```
+
+**Option B: vLLM (recommended for production)**
+```bash
+vllm serve google/gemma-3-12b-it --host 0.0.0.0 --port 8000 --dtype auto --gpu-memory-utilization 0.90
+```
+
+vLLM provides OpenAI-compatible API at:
+- `POST http://localhost:8000/v1/chat/completions`
+- `GET http://localhost:8000/v1/models`
+
+Set `GEMMA_LOCAL_URL=http://localhost:8000/v1` in `.env.local` for vLLM.
+
+---
+
+## 🔌 External Services
+
+| Service | Purpose | Required |
+|---------|---------|----------|
+| **Fireworks AI** | Primary signal generation (`gpt-oss-120b`) | Yes (for real signals) |
+| **ExchangeRate API** | Live forex rates | No (free tier, no key) |
+| **AMD GPU (ROCm)** | Local Gemma inference | No (falls back to mock) |
+
+### Fireworks AI
+- Get API key at [fireworks.ai](https://fireworks.ai)
+- Model used: `accounts/fireworks/models/gpt-oss-120b`
+- Endpoints: `/chat/completions`
+
+### ExchangeRate API
+- Free public endpoint: `https://api.exchangerate-api.com/v4/latest/USD`
+- No API key required
+- Cached for 60 seconds
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|----------|-----------|
+| **Framework** | Next.js 16 (App Router), React 19 |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS 4 |
+| **Cloud AI** | Fireworks AI (gpt-oss-120b) |
+| **GPU AI** | Local AMD GPU (google/gemma-2-2b-it) |
+| **Data** | ExchangeRate API (free, no key) |
+| **Caching** | In-memory 1-hour TTL |
+| **Animations** | Canvas API (particles, candlesticks) |
 
 ---
 

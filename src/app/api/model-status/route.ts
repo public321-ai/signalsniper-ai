@@ -2,17 +2,12 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const fireworksKey = !!process.env.FIREWORKS_API_KEY;
-  const nvidiaKey = !!process.env.NVIDIA_API_KEY;
   const localGemma = !!process.env.GEMMA_LOCAL_URL;
 
   const status = {
     fireworks: {
       available: fireworksKey,
-      model: "gemma3n-27b",
-    },
-    nvidia: {
-      available: false, // NVIDIA API not currently integrated
-      model: "google/gemma-2-2b-it",
+      model: "gpt-oss-120b",
     },
     local: {
       available: localGemma,
