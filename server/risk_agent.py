@@ -202,7 +202,7 @@ def analyze_risk(data: Dict) -> Dict:
             if rr_val < 1.5:
                 warnings.append("Poor risk/reward ratio - consider wider target")
 
-        risk_summary = f"Risk level {risk_level}. {get_position_guidance(risk_level)}."
+        risk_summary = f"Risk level {risk_level.value}. {get_position_guidance(risk_level)}."
 
         return {
             "risk_level": risk_level.value,
