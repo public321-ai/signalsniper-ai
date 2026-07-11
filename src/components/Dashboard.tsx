@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { SignalAnalysis } from "@/types/signal";
 import GemmaAnalysisButton from "@/components/GemmaAnalysisButton";
+import DemoModeCard from "@/components/DemoModeCard";
 
 const PAIRS = ["EUR/USD", "GBP/USD", "USD/JPY"];
 
@@ -398,6 +399,7 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+      <DemoModeCard />
 
       <main className="flex-1">
         {/* Hero */}
