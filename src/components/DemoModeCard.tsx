@@ -48,7 +48,10 @@ export default function DemoModeCard() {
               Currently showing 3 sample signals.
             </p>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              SignalSniper AI scales across Forex, ETFs, indices, crypto, commodities, and more. Expanded coverage requires additional data pipelines and AI compute.
+              SignalSniper AI is architected to scale across multiple Forex pairs, ETFs, indices, cryptocurrencies, commodities, and other markets.
+            </p>
+            <p className="text-[11px] text-slate-600 leading-relaxed mt-2">
+              Expanded market coverage requires additional data pipelines and AI compute capacity (GPU/LLM infrastructure) to support large-scale real-time market intelligence.
             </p>
           </div>
         </div>
