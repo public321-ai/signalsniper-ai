@@ -137,16 +137,7 @@ export async function analyzeWithGemma(
     }
   }
 
-  // 3. Check if fallback is disabled and no local model
-  if (!FIREWORKS_FALLBACK) {
-    return {
-      symbol: params.symbol,
-      analysis: "Service unavailable: Local Gemma not configured. Set GEMMA_LOCAL_URL or enable FIREWORKS_FALLBACK=enabled.",
-      model: "service-unavailable"
-    };
-  }
-
-  // 4. Mock Gemma (Development/demonstration)
+  // 3. Mock Gemma (Development/fallback - always available)
   const analysis = await callMockGemma(params);
   return { symbol: params.symbol, analysis, model: "gemma-mock" };
 }
