@@ -238,7 +238,7 @@ if os.getenv("FASTAPI_ENABLED", "true").lower() == "true":
         entry_price: float
         confidence: int
         indicators: Dict
-        market_condition: str
+        market_condition: Optional[str] = "trending"
         stopLoss: Optional[float] = None
         takeProfit: Optional[float] = None
         keyLevels: Optional[List[Dict]] = None
