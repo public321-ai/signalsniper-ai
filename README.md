@@ -432,6 +432,47 @@ Set `GEMMA_LOCAL_URL=http://localhost:8000/v1` in `.env.local` for vLLM.
 
 ---
 
+## 🎯 Live Demo
+
+### Running Architecture
+
+```
+Next.js App (localhost:3000)
+        │
+SignalSniper Agents
+        │
+vLLM Server (localhost:8000/v1)
+        │
+google/gemma-3-12b-it
+        │
+AMD GPU + ROCm
+```
+
+### Verified Status
+
+```
+GPU: Radeon (gfx1100) - 49GB VRAM - 90% utilized
+ROCm: 7.2
+vLLM: Running google/gemma-3-12b-it on port 8000
+Model Response: ✓ Working (1,201 tokens in 60ms)
+```
+
+### Example Query
+
+```bash
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model":"google/gemma-3-12b-it",
+    "messages":[{"role":"user","content":"Analyze EUR/USD. RSI=62, MACD bullish crossover, SMA20 above SMA50, ADX=28, ATR increasing."}],
+    "temperature":0.2
+  }'
+```
+
+Returns structured signal with: **Cautious Buy**, **65% confidence**, **Moderate risk**.
+
+---
+
 ## 📄 License
 
 Educational project. Not financial advice. AI-generated content is for informational purposes only.
