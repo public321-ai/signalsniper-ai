@@ -160,6 +160,30 @@ Every signal passes through an independent AI validation layer that reviews indi
 | `GET` | `/api/model-status` | Check available model providers |
 | `POST` | `/api/analyze-batch` | Parallel analysis for multiple pairs |
 
+### Python Agent API Routes (Backend)
+
+| Agent | Port | Endpoint | Description |
+|-------|------|----------|-------------|
+| Gemma Server | 8000 | `POST /generate` | Text generation |
+| | | `POST /chat` | Chat completions |
+| | | `GET /health` | Health check |
+| Validation Agent | 8001 | `POST /analyze_signal` | Signal validation & scoring |
+| | | `GET /health` | Health check |
+| Risk Agent | 8002 | `POST /analyze_risk` | Risk analysis & SL/TP calculation |
+| | | `GET /health` | Health check |
+| Contrarian Agent | 8003 | `POST /analyze_counter_argument` | Skeptical signal review |
+| | | `GET /health` | Health check |
+| Market Context Agent | 8004 | `POST /analyze_market_context` | Market environment analysis |
+| | | `GET /health` | Health check |
+| Historical Pattern Agent | 8005 | `POST /analyze_historical_pattern` | Historical pattern matching |
+| | | `GET /health` | Health check |
+| Orchestrator Agent | 8006 | `POST /orchestrate` | Multi-agent pipeline coordination |
+| | | `GET /health` | Health check |
+| Score Engine | 8007 | `POST /calculate_sniper_score` | SignalSniper Score™ calculation |
+| | | `GET /health` | Health check |
+| Report Generator | 8008 | `POST /generate_trade_report` | AI trade report generation |
+| | | `GET /health` | Health check |
+
 ### POST /api/analyze
 
 ```json
