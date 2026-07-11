@@ -11,7 +11,7 @@ export async function GET() {
       model: "gemma3n-27b",
     },
     nvidia: {
-      available: nvidiaKey,
+      available: false, // NVIDIA API not currently integrated
       model: "google/gemma-2-2b-it",
     },
     local: {
@@ -25,7 +25,7 @@ export async function GET() {
     models: status,
     active: {
       signal: fireworksKey ? "fireworks" : "mock",
-      gemma: nvidiaKey ? "nvidia" : localGemma ? "local" : "mock",
+      gemma: localGemma ? "local" : "mock",
     },
   });
 }

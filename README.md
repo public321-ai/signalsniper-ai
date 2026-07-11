@@ -16,10 +16,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript)](#)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06b6d4?logo=tailwindcss)](#)
 [![Fireworks AI](https://img.shields.io/badge/Fireworks_AI-3b82f6)](#)
-[![NVIDIA](https://img.shields.io/badge/NVIDIA_AI-76b900)](#)
-[![AMD ROCm](https://img.shields.io/badge/AMD_ROCrn-ED64A6)](#)
+[![AMD GPU](https://img.shields.io/badge/Local_AMD_GPU-ED64A6)](#)
 
-_High-Performance Forex Intelligence with Fireworks AI, NVIDIA GPUs, and Explainable AI_
+_High-Performance Forex Intelligence with Fireworks AI, Local AMD GPU Gemma, and Explainable AI_
 
 **Built for the AMD Hackathon 2026**
 
@@ -45,7 +44,7 @@ _High-Performance Forex Intelligence with Fireworks AI, NVIDIA GPUs, and Explain
 
 - **3 major forex pairs**: EUR/USD, GBP/USD, USD/JPY
 - **14 technical indicators** per pair: RSI, MACD, Bollinger Bands, SMA, EMA, Stochastic, ATR, ADX, volume
-- **Dual AI pipeline**: Fireworks cloud for structured signals + NVIDIA GPU for narrative deep-dives
+- **Dual AI pipeline**: Fireworks cloud for structured signals + Local AMD GPU Gemma for narrative deep-dives
 - **Live exchange rates**: Auto-refreshing every 60 seconds
 - **Intelligent caching**: 1-hour TTL, zero wasted API calls
 - **Automated fallback**: Model failure → seamless failover, no user-facing errors
@@ -88,7 +87,7 @@ Open [http://localhost:3000](http://localhost:3000)
 │  ┌────────────────────────────────────┐  ┌────────────────────┐  │
 │  │      Pipeline 1 — Signal Gen       │  │ Pipeline 2 — Deep  │  │
 │  │          Fireworks AI               │  │   Explanation      │  │
-│  │          Structured JSON            │  │  NVIDIA GPU + vLLM │  │
+│  │          Structured JSON            │  │  Local AMD GPU Gemma │  │
 │  │                                    │  │  Gemma Narrative    │  │
 │  │  Live Rates → 14 Indicators → AI   │  │  Signal → Prompt→  │  │
 │  │  → JSON Extract → Cache (1hr)      │  │  → Analysis Text   │  │
@@ -285,7 +284,7 @@ src/
 ├── lib/
 │   ├── analyze.ts                      — Fireworks AI integration
 │   ├── cache.ts                        — In-memory 1hr TTL cache
-│   ├── gemma-service.ts               — NVIDIA Gemma (mock/real)
+│   ├── gemma-service.ts               — Local AMD GPU Gemma (mock/real)
 │   └── gemma-local.ts                 — Local AMD GPU Gemma client
 ├── prompts/
 │   └── forex_analysis_prompt.txt       — Gemma prompt template
@@ -311,7 +310,7 @@ src/
 | **Language** | TypeScript |
 | **Styling** | Tailwind CSS 4 |
 | **Cloud AI** | Fireworks AI (gpt-oss-120b, gemma3n-27b) |
-| **GPU AI** | NVIDIA AI (google/gemma-2-2b-it) |
+| **GPU AI** | Local AMD GPU (google/gemma-2-2b-it) |
 | **Data** | ExchangeRate API (free, no key) |
 | **Caching** | In-memory 1-hour TTL |
 | **Animations** | Canvas API (particles, candlesticks) |
@@ -330,7 +329,7 @@ Entry price, stop loss, take profit, risk:reward ratio, support/resistance level
 1-hour in-memory TTL across all 3 pairs. Dashboard loads in under 200ms on cache hit. No redundant API calls.
 
 ### 🛡️ Graceful Degradation
-Model fallback chain (primary → secondary → error). If NVIDIA key is missing, Gemma analysis falls back to realistic mock responses. Zero user-facing errors.
+Model fallback chain (primary → secondary → error). If local Gemma is unavailable, Gemma analysis falls back to realistic mock responses. Zero user-facing errors.
 
 ### ⚡ Parallel Execution
 All 3 forex pairs analyzed simultaneously via `Promise.all`. Combined with caching, the dashboard loads instantly.
