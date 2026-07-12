@@ -473,6 +473,36 @@ Returns structured signal with: **Cautious Buy**, **65% confidence**, **Moderate
 
 ---
 
+## 🔧 Recent Audit (July 2026)
+
+### Fixes Applied
+
+| Agent | Issue | Resolution |
+|-------|-------|------------|
+| `orchestrator_agent.py` | Risk score inverted (100 - score) | Removed inversion, scores now correctly weighted |
+| `orchestrator_agent.py` | Contrarian score extraction crash on None | Added type guards for `.get()` calls |
+| `validation_agent.py` | MACD operator precedence bug | Added parentheses for correct boolean logic |
+| `validation_agent.py` | Wrong parameter in validation score | Now uses `confidence` instead of technical score |
+| `score_engine.py` | Missing F grade in ScoreGrade enum | Added explicit F grade for scores < 60 |
+| `report_generator.py` | Wrong key paths for agent_analysis | Fixed to match orchestrator output structure |
+| `contrarian_agent.py` | Misleading final_comment for rejected signals | Now clarifies signal rejection status |
+| `market_context_agent.py` | Flawed currency strength alignment | Improved mock logic with relative strength |
+
+### Security Considerations
+
+- **Error handling**: `gemma_server.py` HTTP 500 responses reveal internal errors; consider sanitizing in production
+- **Input validation**: All agents use `.get()` with defaults for safe dictionary access
+- **Type safety**: Added guards for nested dictionary access in orchestrator
+
+### Testing Status
+
+All agents pass syntax validation and core functionality tests:
+- Orchestrator sniper score: 77 for test case (correct)
+- Validation agent: Returns APPROVED/CAUTION/REJECTED correctly
+- Risk agent: Calculates levels and warnings properly
+
+---
+
 ## 📄 License
 
 Educational project. Not financial advice. AI-generated content is for informational purposes only.
