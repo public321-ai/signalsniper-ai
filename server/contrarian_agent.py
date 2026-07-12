@@ -245,7 +245,7 @@ def analyze_counter_argument(data: Dict) -> Dict:
             },
             "original_confidence": input_data.confidence,
             "adjusted_confidence": adjusted,
-            "final_comment": f"The {input_data.signal} signal {'remains valid' if challenge_score >= 50 else 'is questionable'} but requires monitoring."
+            "final_comment": f"The {input_data.signal} signal {'requires careful monitoring' if challenge_score >= 50 and (not input_data.validation_result or input_data.validation_result.get('decision') != 'REJECTED') else 'was rejected by validation'} - challenge score: {challenge_score}."
         }
 
     except Exception as e:

@@ -157,15 +157,27 @@ def analyze_currency_strength(symbol: str, signal: str) -> tuple[str, str, str]:
     base = symbol[:3] if len(symbol) >= 3 else "XXX"
     quote = symbol[3:] if len(symbol) >= 6 else "XXX"
 
-    alignment = "NEUTRAL"
-    base_strength = "NEUTRAL"
-    quote_strength = "NEUTRAL"
+    # Mock strengths for demonstration - would integrate real strength data
+    import random
+    strengths = ["WEAK", "NEUTRAL", "STRONG"]
+    base_strength = random.choice(strengths)
+    quote_strength = random.choice(strengths)
 
-    # Mock logic for demonstration
+    # Determine alignment based on relative strength
     if signal.upper() == "BUY":
-        alignment = "POSITIVE" if base_strength == "NEUTRAL" else "MIXED"
-    else:
-        alignment = "POSITIVE" if quote_strength == "NEUTRAL" else "MIXED"
+        if base_strength == "STRONG" and quote_strength != "STRONG":
+            alignment = "POSITIVE"
+        elif base_strength == "WEAK" and quote_strength != "WEAK":
+            alignment = "NEGATIVE"
+        else:
+            alignment = "NEUTRAL"
+    else:  # SELL
+        if quote_strength == "STRONG" and base_strength != "STRONG":
+            alignment = "POSITIVE"
+        elif quote_strength == "WEAK" and base_strength != "WEAK":
+            alignment = "NEGATIVE"
+        else:
+            alignment = "NEUTRAL"
 
     return base_strength, quote_strength, alignment
 

@@ -21,6 +21,7 @@ class ScoreGrade(str, Enum):
     B = "B"
     C = "C"
     D = "D"
+    F = "F"
 
 # Default weights (configurable)
 DEFAULT_WEIGHTS = {
@@ -76,7 +77,7 @@ def score_to_grade(score: int) -> ScoreGrade:
         return ScoreGrade.C
     elif score >= 60:
         return ScoreGrade.D
-    return ScoreGrade.D
+    return ScoreGrade.F
 
 def identify_strengths(
     validation_score: int,

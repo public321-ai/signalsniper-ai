@@ -79,7 +79,7 @@ def check_macd(macd_signal: str) -> tuple[bool, List[str]]:
     valid = True
 
     signal_lower = str(macd_signal).lower()
-    bullish = "bullish" in signal_lower or "crossover" in signal_lower and "above" in signal_lower
+    bullish = "bullish" in signal_lower or ("crossover" in signal_lower and "above" in signal_lower)
     bearish = "bearish" in signal_lower or "crossunder" in signal_lower or "below" in signal_lower
 
     if bullish:
@@ -314,7 +314,7 @@ def generate_validation_report(input_data: ValidationInput) -> Dict:
 
     # 5. Validation score
     validation_score = calculate_validation_score(
-        technical_check, risk_check, technical_check.score
+        technical_check, risk_check, input_data.confidence
     )
 
     # 6. Final decision

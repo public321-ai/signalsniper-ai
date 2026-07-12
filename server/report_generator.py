@@ -60,25 +60,25 @@ def generate_decision_summary(data: Dict) -> str:
     agent = data.get("agent_analysis", {})
 
     # Technical validation
-    val = agent.get("validation", {})
+    val = agent.get("validation_result", {})
     if val.get("validation_score", 0) >= 80:
         summary_parts.append("strong technical confirmation")
 
     # Risk assessment
-    risk = agent.get("risk_analysis", {})
-    if risk.get("risk_level") == "LOW":
+    risk = agent.get("risk", {})
+    if risk.get("level") == "LOW":
         summary_parts.append("low risk exposure")
-    elif risk.get("risk_level") == "MEDIUM":
+    elif risk.get("level") == "MEDIUM":
         summary_parts.append("controlled risk")
 
     # Market context
     ctx = agent.get("market_context", {})
-    if ctx.get("market_context_score", 0) >= 70:
+    if ctx.get("score", 0) >= 70:
         summary_parts.append("favorable market conditions")
 
     # Historical
-    hist = agent.get("historical_analysis", {})
-    if hist.get("historical_score", 0) >= 70:
+    hist = agent.get("historical", {})
+    if hist.get("score", 0) >= 70:
         summary_parts.append("positive historical precedent")
 
     if summary_parts:
@@ -92,31 +92,28 @@ def generate_decision_summary(data: Dict) -> str:
 def generate_technical_section(data: Dict) -> Dict:
     """Generate technical intelligence section."""
     agent = data.get("agent_analysis", {})
-    val = agent.get("validation_result", {})
 
     supporting = []
-    # Check validation data for supporting factors
+    # Check validation data for supporting factors (agent_analysis may have validation_result)
+    val = agent.get("validation_result", {})
     if isinstance(val.get("supporting_factors"), list):
         supporting = val["supporting_factors"][:3]
-    else:
-        # Derive from score
-        if data.get("sniper_score", 0) >= 70:
-            supporting = ["Technical indicators aligned"]
+    elif data.get("sniper_score", 0) >= 70:
+        supporting = ["Technical indicators aligned"]
 
     return {
         "indicators_analyzed": 14,
         "supporting_factors": supporting[:3],
-        "validation_score": data.get("agent_analysis", {}).get("validation", {}).get("score", 50)
+        "validation_score": agent.get("validation", {}).get("score", 50)
     }
 
 def generate_risk_section(data: Dict) -> Dict:
     """Generate risk assessment section."""
     agent = data.get("agent_analysis", {})
-    risk = agent.get("risk_analysis", {})
-    val = agent.get("validation_result", {})
+    risk = agent.get("risk", {})
 
     return {
-        "level": risk.get("risk_level", "UNKNOWN"),
+        "level": risk.get("level", "UNKNOWN"),
         "stop_loss": "See signal data",
         "take_profit": "See signal data",
         "risk_reward": risk.get("risk_reward_ratio", "N/A"),
@@ -126,8 +123,10 @@ def generate_risk_section(data: Dict) -> Dict:
 def generate_contrarian_section(data: Dict) -> Dict:
     """Generate contrarian review section."""
     agent = data.get("agent_analysis", {})
-    contra = agent.get("contrarian_analysis", {})
-    result = contra.get("contrarian_result", {})
+    contra = agent.get("contrarian", {})
+    result = contra.get("contrarian_result") if isinstance(contra, dict) else {}
+    if not isinstance(result, dict):
+        result = {}
 
     warnings = []
     if result.get("failure_probability"):
@@ -146,14 +145,16 @@ def generate_market_section(data: Dict) -> Dict:
     return {
         "regime": ctx.get("market_regime", "UNKNOWN"),
         "trend": ctx.get("trend_direction", "NEUTRAL"),
-        "volatility": ctx.get("volatility", {}).get("level", "UNKNOWN"),
-        "economic_risk": ctx.get("economic_risk", {}).get("level", "UNKNOWN")
+        "volatility": ctx.get("volatility", {}).get("level", "UNKNOWN") if isinstance(ctx.get("volatility"), dict) else "UNKNOWN",
+        "economic_risk": ctx.get("economic_risk", {}).get("level", "UNKNOWN") if isinstance(ctx.get("economic_risk"), dict) else "UNKNOWN"
     }
 
 def generate_historical_section(data: Dict) -> Dict:
     """Generate historical intelligence section."""
     agent = data.get("agent_analysis", {})
-    hist = agent.get("historical_analysis", {})
+    hist = agent.get("historical", {})
+    if not isinstance(hist, dict):
+        hist = {}
 
     return {
         "similar_patterns": hist.get("similar_patterns_found", 0),

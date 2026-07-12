@@ -38,12 +38,12 @@ def aggregate_agent_results(data: OrchestratorInput) -> Dict:
             "status": data.validation_result.get("decision", "UNKNOWN") if data.validation_result else "UNKNOWN"
         },
         "risk": {
-            "score": 100 - data.risk_analysis.get("risk_score", 50) if data.risk_analysis else 50,
+            "score": data.risk_analysis.get("risk_score", 50) if data.risk_analysis else 50,
             "level": data.risk_analysis.get("risk_level", "UNKNOWN") if data.risk_analysis else "UNKNOWN"
         },
         "contrarian": {
-            "score": data.contrarian_analysis.get("contrarian_result", {}).get("challenge_score", 50) if data.contrarian_analysis else 50,
-            "risk": "HIGH" if data.contrarian_analysis.get("contrarian_result", {}).get("failure_probability", "").startswith("HIGH") else "MODERATE"
+            "score": data.contrarian_analysis.get("contrarian_result", {}).get("challenge_score", 50) if data.contrarian_analysis and isinstance(data.contrarian_analysis.get("contrarian_result"), dict) else 50,
+            "risk": "HIGH" if data.contrarian_analysis and isinstance(data.contrarian_analysis.get("contrarian_result"), dict) and data.contrarian_analysis.get("contrarian_result", {}).get("failure_probability", "").startswith("HIGH") else "MODERATE"
         },
         "market_context": {
             "score": data.market_context.get("market_context_score", 50) if data.market_context else 50,
