@@ -1,0 +1,20 @@
+# Python agents - FastAPI on Python 3.13
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir fastapi uvicorn gunicorn uvicorn[standard]
+
+# Copy agent files
+COPY server/*.py /app/
+
+# Copy entrypoint
+COPY server/docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Expose ports 8000-8008
+EXPOSE 8000-8008
+
+# Start all agents
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

@@ -1,0 +1,10 @@
+node_modules
+.git
+.next
+*.log
+.DS_Store
+.env.local
+.env*.local
+.vercel
+.nyc_output
+coverage
